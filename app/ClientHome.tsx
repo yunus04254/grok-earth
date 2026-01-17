@@ -198,10 +198,12 @@ export default function ClientHome({ apiKey }: ClientHomeProps) {
         showGrokRadio={showGrokRadio}
         showPredictionMarkets={showPredictionMarkets}
         showGrokImagine={showGrokImagine}
+        showLiveTweetFeed={showLiveTweetFeed}
         onToggleGrokipedia={() => setShowGrokipedia(!showGrokipedia)}
         onToggleGrokRadio={() => setShowGrokRadio(!showGrokRadio)}
         onTogglePredictionMarkets={() => setShowPredictionMarkets(!showPredictionMarkets)}
         onToggleGrokImagine={() => setShowGrokImagine(!showGrokImagine)}
+        onToggleLiveTweetFeed={() => setShowLiveTweetFeed(!showLiveTweetFeed)}
       />
       <MarkerKey />
 

@@ -82,10 +82,12 @@ interface SidePanelProps {
     showGrokRadio?: boolean;
     showPredictionMarkets?: boolean;
     showGrokImagine?: boolean;
+    showLiveTweetFeed?: boolean;
     onToggleGrokipedia?: () => void;
     onToggleGrokRadio?: () => void;
     onTogglePredictionMarkets?: () => void;
     onToggleGrokImagine?: () => void;
+    onToggleLiveTweetFeed?: () => void;
 }
 
 export default function SidePanel({
@@ -94,15 +96,23 @@ export default function SidePanel({
     showGrokRadio = false,
     showPredictionMarkets = false,
     showGrokImagine = false,
+    showLiveTweetFeed = false,
     onToggleGrokipedia,
     onToggleGrokRadio,
     onTogglePredictionMarkets,
     onToggleGrokImagine,
+    onToggleLiveTweetFeed,
 }: SidePanelProps) {
     const [hoveredIndex, setHoveredIndex] = useState<number | null>(null);
 
     const ICON_ITEMS: IconItem[] = [
-        { icon: TweetsIcon, label: 'Tweets' },
+        {
+            icon: TweetsIcon,
+            label: 'X Posts',
+            onClick: hasCity ? onToggleLiveTweetFeed : undefined,
+            isActive: hasCity && showLiveTweetFeed,
+            activeColor: 'blue'
+        },
         { icon: LiveSpacesIcon, label: 'X Live Spaces' },
         { icon: PodcastIcon, label: 'Podcast' },
         {
