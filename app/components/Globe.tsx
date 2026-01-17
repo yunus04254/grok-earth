@@ -213,8 +213,6 @@ const Globe = forwardRef<GlobeRef, GlobeProps>(({ apiKey, onHotspotSelect }, ref
       antialias: true,
     });
 
-    map.current.addControl(new mapboxgl.NavigationControl(), 'top-right');
-
     // Satellite generation
     const generateSatelliteGeoJSON = (count: number) => {
       const features = [];
