@@ -45,9 +45,9 @@ export default function Globe({ apiKey }: GlobeProps) {
         const lat = Math.asin((Math.random() * 2 - 1) * 0.9) * (180 / Math.PI);
         const lng = (Math.random() * 360) - 180;
         
-        // Altitude in meters (Starlink orbit - 340km to 550km)
-        // Real Starlink satellites orbit at these altitudes
-        const altitude = 340000 + Math.random() * 210000; 
+        // Altitude in meters (Higher orbit - 800km to 1200km)
+        // Positioned at higher altitude for better visibility
+        const altitude = 800000 + Math.random() * 400000; 
 
         features.push({
           type: 'Feature',
@@ -116,7 +116,7 @@ export default function Globe({ apiKey }: GlobeProps) {
           'model-id': 'satellite-model',
         },
         paint: {
-          'model-scale': [100000, 100000, 100000], 
+          'model-scale': [20000, 20000, 20000], // Even smaller satellites
           'model-rotation': [0, 0, 0],
           // Use model-translation with [x, y, z] - z is altitude in meters
           // Using data-driven styling to get altitude from feature properties
