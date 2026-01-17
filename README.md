@@ -1,7 +1,8 @@
 ![Grok Earth](app/assets/GrokEarth.png)
-**Mission Control for the planet**
 ## Mission & Vision
-To understand the universe, one must first understand the Earth.
+>_A wise man once said, "To understand the universe, one must first understand the Earth."_
+
+Grok Earth provides the first open-source world explorer, as a mission control
 
 **Themes:**
 - **Mission Control** - Centralized command center for global intelligence
@@ -25,6 +26,8 @@ To understand the universe, one must first understand the Earth.
 - **Automatic fly-to animations** for seamless navigation
 - **Double-click to explore** any location on the globe
 - **Starlink satellite visualization** (42 satellites as easter eggs)
+
+<img width="3440" height="1327" alt="Screenshot 2026-01-17 at 19 57 03" src="https://github.com/user-attachments/assets/e9e99a42-97ad-4e99-92ca-388d03914e11" />
 
 ### Information Cards
 
@@ -71,6 +74,9 @@ To understand the universe, one must first understand the Earth.
 - Click to view satellite details
 - Real-time orbital data
 - Easter egg: 42 satellites
+
+<img width="3439" height="1322" alt="Screenshot 2026-01-17 at 19 59 01" src="https://github.com/user-attachments/assets/5b359b45-7bd6-4d62-ba6e-d5e563b271c2" />
+
 
 ### User Interface
 
