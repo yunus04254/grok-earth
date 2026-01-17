@@ -7,6 +7,7 @@ import { MARKER_STYLES } from '@/app/lib/types';
 
 interface GlobeProps {
   apiKey: string;
+  onHotspotSelect?: (hotspot: Hotspot) => void;
 }
 
 // Fallback data while API loads or fails
@@ -70,7 +71,7 @@ function generateHeatmapFeatures(blueZones: Hotspot[]) {
   return { type: 'FeatureCollection', features };
 }
 
-export default function Globe({ apiKey }: GlobeProps) {
+export default function Globe({ apiKey, onHotspotSelect }: GlobeProps) {
   const mapContainer = useRef<HTMLDivElement>(null);
   const map = useRef<mapboxgl.Map | null>(null);
   const markersRef = useRef<mapboxgl.Marker[]>([]);
@@ -109,7 +110,13 @@ export default function Globe({ apiKey }: GlobeProps) {
     el.title = `${hotspot.name}${hotspot.topTrend ? ` - ${hotspot.topTrend}` : ''}`;
     el.style.cursor = 'pointer';
 
-    el.addEventListener('click', () => {
+    el.addEventListener('click', (e) => {
+      e.stopPropagation(); // Prevent map click events if any
+
+      if (onHotspotSelect) {
+        onHotspotSelect(hotspot);
+      }
+
       if (map.current) {
         map.current.flyTo({
           center: [hotspot.lng, hotspot.lat],
@@ -122,7 +129,7 @@ export default function Globe({ apiKey }: GlobeProps) {
     });
 
     return el;
-  }, []);
+  }, [onHotspotSelect]);
 
   // Initialize map and add layers
   useEffect(() => {
@@ -156,10 +163,10 @@ export default function Globe({ apiKey }: GlobeProps) {
       for (let i = 0; i < count; i++) {
         const lat = Math.asin((Math.random() * 2 - 1) * 0.9) * (180 / Math.PI);
         const lng = (Math.random() * 360) - 180;
-        
+
         // Altitude in meters (Higher orbit - 800km to 1200km)
         // Positioned at higher altitude for better visibility
-        const altitude = 800000 + Math.random() * 400000; 
+        const altitude = 800000 + Math.random() * 400000;
 
         features.push({
           type: 'Feature',

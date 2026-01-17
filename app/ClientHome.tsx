@@ -4,10 +4,14 @@ import { useState } from 'react';
 import Image from 'next/image';
 import Globe from './components/Globe';
 import SidePanel from './components/SidePanel';
+import { AnimatePresence } from 'framer-motion';
+import Link from 'next/link';
 import MarkerKey from './components/MarkerKey';
+import CityTrendsCard from './components/CityTrendsCard';
 import Grokipedia from './components/Grokipedia';
 import GrokEarthLogo from './assets/GrokEarth.png';
 import { GEInput } from '@/components/GEInput';
+import { Hotspot } from '@/app/lib/types';
 
 interface ClientHomeProps {
   apiKey: string;
@@ -15,12 +19,28 @@ interface ClientHomeProps {
 
 export default function ClientHome({ apiKey }: ClientHomeProps) {
   const [showGrokipedia, setShowGrokipedia] = useState(false);
+  const [selectedHotspot, setSelectedHotspot] = useState<Hotspot | null>(null);
 
   return (
     <main className="w-full h-screen relative">
-      <Globe apiKey={apiKey} />
+      <Globe
+        apiKey={apiKey}
+        onHotspotSelect={setSelectedHotspot}
+      />
       <SidePanel onGrokipediaClick={() => setShowGrokipedia(true)} />
       <MarkerKey />
+
+      {/* City Trends Card */}
+      <AnimatePresence>
+        {selectedHotspot && (
+          <CityTrendsCard
+            hotspot={selectedHotspot}
+            onClose={() => setSelectedHotspot(null)}
+            key="city-trends-card"
+          />
+        )}
+      </AnimatePresence>
+
       {showGrokipedia && (
         <Grokipedia onClose={() => setShowGrokipedia(false)} />
       )}
@@ -35,6 +55,7 @@ export default function ClientHome({ apiKey }: ClientHomeProps) {
           className="h-auto"
         />
       </div>
+
       {/* Floating input at bottom */}
       <div className="fixed bottom-8 left-1/2 -translate-x-1/2 z-30 w-full max-w-2xl px-4">
         <div className="relative group">
