@@ -17,6 +17,7 @@ interface Tweet {
 }
 
 interface TweetCardProps {
+  id: string;
   avatar: string;
   handle: string;
   content: string;
@@ -25,12 +26,21 @@ interface TweetCardProps {
 }
 
 const TweetCard = React.forwardRef<HTMLDivElement, TweetCardProps>(
-  ({ avatar, handle, content, likes, retweets }, ref) => {
+  ({ id, avatar, handle, content, likes, retweets }, ref) => {
+    const username = handle.replace('@', '');
+    const tweetUrl = `https://twitter.com/${username}/status/${id}`;
+    
     return (
-      <Card
-        ref={ref}
-        className="bg-transparent border-[#2a2f3a]/40 rounded-xl transition-all duration-200"
+      <a 
+        href={tweetUrl} 
+        target="_blank" 
+        rel="noopener noreferrer"
+        className="block no-underline"
       >
+        <Card
+          ref={ref}
+          className="bg-transparent border-[#2a2f3a]/40 rounded-xl transition-all duration-200 hover:border-[#2a2f3a]/80 hover:bg-[#1a1d24]/30 hover:shadow-lg cursor-pointer"
+        >
         <CardContent className="flex gap-2 p-3">
           {/* Avatar */}
           <div className="flex-shrink-0">
@@ -70,6 +80,7 @@ const TweetCard = React.forwardRef<HTMLDivElement, TweetCardProps>(
           </div>
         </CardContent>
       </Card>
+      </a>
     );
   }
 );
@@ -158,6 +169,7 @@ export const TweetList: React.FC<TweetListProps> = ({ region }) => {
                 className="mb-2"
               >
                 <TweetCard
+                  id={tweet.id}
                   avatar={tweet.avatar}
                   handle={tweet.handle}
                   content={tweet.content}
