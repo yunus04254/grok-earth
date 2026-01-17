@@ -85,7 +85,7 @@ export default function Grokipedia({ onClose, city }: GrokipediaProps) {
 
   return (
     <motion.div 
-      className="fixed left-6 top-24 z-40 w-[420px] max-h-[calc(100vh-280px)]"
+      className="fixed left-[200px] top-24 z-40 w-[420px] max-h-[calc(100vh-280px)]"
       initial={{ opacity: 0, x: -20 }}
       animate={{ opacity: 1, x: 0 }}
       exit={{ opacity: 0, x: -20 }}
