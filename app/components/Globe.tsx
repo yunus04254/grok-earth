@@ -259,7 +259,7 @@ const Globe = forwardRef<GlobeRef, GlobeProps>(({ apiKey, onHotspotSelect }, ref
     root.render(
       <TweetList
         region={location.region}
-        maxTweets={3}
+        maxTweets={1}
         autoRotate={true}
       />
     );
