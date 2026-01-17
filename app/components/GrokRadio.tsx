@@ -20,7 +20,6 @@ export default function GrokRadio({ onClose, city }: GrokRadioProps) {
   const [isMuted, setIsMuted] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [isUserSpeaking, setIsUserSpeaking] = useState(false);
-  const hasStarted = useRef(false);
 
   const wsRef = useRef<WebSocket | null>(null);
   const audioContextRef = useRef<AudioContext | null>(null);
@@ -336,20 +335,12 @@ export default function GrokRadio({ onClose, city }: GrokRadioProps) {
     };
   }, [initAudioContext, startMicrophone, stopMicrophone, base64ToFloat32Array, playAudio]);
 
-  // Start radio
+  // Start radio - requires user click for AudioContext to work
   const startRadio = useCallback(() => {
     if (!city.trim()) return;
     setMode('radio');
     connectWebSocket('radio', city);
   }, [city, connectWebSocket]);
-
-  // Auto-start radio when component mounts with a city
-  useEffect(() => {
-    if (city && !hasStarted.current) {
-      hasStarted.current = true;
-      startRadio();
-    }
-  }, [city, startRadio]);
 
   // Switch to call mode
   const callIn = useCallback(() => {
@@ -584,11 +575,14 @@ export default function GrokRadio({ onClose, city }: GrokRadioProps) {
             {/* Idle state */}
             {!isActive && !error && (
               <div className="text-center py-4">
-                <div className="inline-flex items-center justify-center w-12 h-12 rounded-full bg-[#1a1d24] border border-[#2a2f3a]/60 mb-3">
-                  <Radio className="w-6 h-6 text-[#6b7280]" />
+                <div className="inline-flex items-center justify-center w-12 h-12 rounded-full bg-emerald-500/20 border border-emerald-500/40 mb-3 animate-pulse">
+                  <Radio className="w-6 h-6 text-emerald-400" />
                 </div>
+                <p className="text-[#e5e7eb] text-sm font-medium mb-1">
+                  Click play to start Grok Radio
+                </p>
                 <p className="text-[#9ca3af] text-xs max-w-sm mx-auto">
-                  Press play to start the radio. You can call in anytime to chat with Grok!
+                  Listen to live broadcasts about {city}
                 </p>
               </div>
             )}
