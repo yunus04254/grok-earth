@@ -1,9 +1,11 @@
 'use client';
 
 import { useEffect, useRef, useState, useCallback } from 'react';
+import { createRoot } from 'react-dom/client';
 import mapboxgl from 'mapbox-gl';
 import type { Hotspot, HotspotsResponse } from '@/app/lib/types';
 import { MARKER_STYLES } from '@/app/lib/types';
+import { TweetList } from '@/components/TweetList';
 
 interface GlobeProps {
   apiKey: string;
@@ -33,6 +35,16 @@ const FALLBACK_HOTSPOTS: HotspotsResponse = {
   lastUpdated: new Date().toISOString(),
   source: 'fallback',
 };
+
+// GECard locations spread around the globe
+const GECARD_LOCATIONS = [
+  { name: 'New York', lat: 40.7128, lng: -74.006, region: 'New York' },
+  { name: 'London', lat: 51.5074, lng: -0.1276, region: 'London' },
+  { name: 'Tokyo', lat: 35.6895, lng: 139.6917, region: 'Tokyo' },
+  { name: 'Sydney', lat: -33.8688, lng: 151.2093, region: 'Sydney' },
+  { name: 'São Paulo', lat: -23.5505, lng: -46.6333, region: 'São Paulo' },
+  { name: 'Mumbai', lat: 19.076, lng: 72.8777, region: 'Mumbai' },
+];
 
 // Generate heatmap data from blue zones (emerging trends)
 function generateHeatmapFeatures(blueZones: Hotspot[]) {
@@ -74,6 +86,7 @@ export default function Globe({ apiKey }: GlobeProps) {
   const mapContainer = useRef<HTMLDivElement>(null);
   const map = useRef<mapboxgl.Map | null>(null);
   const markersRef = useRef<mapboxgl.Marker[]>([]);
+  const geCardMarkersRef = useRef<mapboxgl.Marker[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [hotspots, setHotspots] = useState<HotspotsResponse>(FALLBACK_HOTSPOTS);
 
@@ -120,6 +133,27 @@ export default function Globe({ apiKey }: GlobeProps) {
         });
       }
     });
+
+    return el;
+  }, []);
+
+  // Create tweet feed marker element
+  const createGECardMarker = useCallback((location: typeof GECARD_LOCATIONS[0]) => {
+    const el = document.createElement('div');
+    el.style.width = '200px';
+    el.style.pointerEvents = 'auto';
+    el.style.fontSize = '0.75rem';
+    el.style.transform = 'scale(0.9)';
+    el.style.transformOrigin = 'bottom left';
+    
+    const root = createRoot(el);
+    root.render(
+      <TweetList
+        region={location.region}
+        maxTweets={1}
+        autoRotate={false}
+      />
+    );
 
     return el;
   }, []);
@@ -273,6 +307,19 @@ export default function Globe({ apiKey }: GlobeProps) {
         markersRef.current.push(marker);
       });
 
+      // Add tweet feed markers around the globe
+      GECARD_LOCATIONS.forEach(location => {
+        const marker = new mapboxgl.Marker({
+          element: createGECardMarker(location),
+          anchor: 'bottom-left',
+          offset: [10, -10]
+        })
+          .setLngLat([location.lng, location.lat])
+          .addTo(map.current!);
+
+        geCardMarkersRef.current.push(marker);
+      });
+
       map.current.setFog({
         color: 'rgb(10, 10, 10)',
         'high-color': 'rgb(30, 30, 40)',
@@ -307,6 +354,8 @@ export default function Globe({ apiKey }: GlobeProps) {
       clearInterval(spinInterval);
       markersRef.current.forEach(marker => marker.remove());
       markersRef.current = [];
+      geCardMarkersRef.current.forEach(marker => marker.remove());
+      geCardMarkersRef.current = [];
 
       if (map.current) {
         if (map.current.getLayer('trending-heatmap')) {
@@ -330,7 +379,7 @@ export default function Globe({ apiKey }: GlobeProps) {
       map.current?.remove();
       map.current = null;
     };
-  }, [apiKey, hotspots, createRedMarker]);
+  }, [apiKey, hotspots, createRedMarker, createGECardMarker]);
 
   return (
     <div className="relative w-full h-screen">

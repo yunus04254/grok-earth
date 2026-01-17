@@ -15,10 +15,11 @@ export interface GECardProps extends React.HTMLAttributes<HTMLDivElement> {
   onExpand?: () => void;
   maxHeight?: string | number;
   region?: string;
+  showControls?: boolean;
 }
 
 const GECard = React.forwardRef<HTMLDivElement, GECardProps>(
-  ({ className, children, icon, title, live, onClose, onExpand, maxHeight, region, ...props }, ref) => {
+  ({ className, children, icon, title, live, onClose, onExpand, maxHeight, region, showControls = true, ...props }, ref) => {
     const maxHeightStyle = maxHeight 
       ? typeof maxHeight === 'number' 
         ? { maxHeight: `${maxHeight}px` }
@@ -103,42 +104,44 @@ const GECard = React.forwardRef<HTMLDivElement, GECardProps>(
         )}
 
         {/* Control Icons Tool Tray - Bottom, aligned with card content */}
-        <div className={cn(
-          "px-6 pb-6 flex items-center justify-end gap-2",
-          children ? "pt-4" : (icon || title || live) ? "pt-4" : "pt-6",
-          maxHeight && "flex-shrink-0"
-        )}>
-          {/* Move/Drag Indicator */}
-          <div className="flex items-center justify-center w-9 h-9 cursor-move group">
-            <Move className="h-5 w-5 text-[#6b7280] group-hover:text-[#60a5fa] transition-all duration-300 group-hover:scale-110 group-hover:drop-shadow-[0_0_8px_rgba(96,165,250,0.5)]" />
+        {showControls && (
+          <div className={cn(
+            "px-6 pb-6 flex items-center justify-end gap-2",
+            children ? "pt-4" : (icon || title || live) ? "pt-4" : "pt-6",
+            maxHeight && "flex-shrink-0"
+          )}>
+            {/* Move/Drag Indicator */}
+            <div className="flex items-center justify-center w-9 h-9 cursor-move group">
+              <Move className="h-5 w-5 text-[#6b7280] group-hover:text-[#60a5fa] transition-all duration-300 group-hover:scale-110 group-hover:drop-shadow-[0_0_8px_rgba(96,165,250,0.5)]" />
+            </div>
+
+            {/* Expand Icon */}
+            {onExpand && (
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onExpand?.();
+                }}
+                className="flex items-center justify-center w-9 h-9 cursor-pointer group active:scale-95 transition-all duration-300"
+              >
+                <Maximize2 className="h-5 w-5 text-[#6b7280] group-hover:text-[#34d399] transition-all duration-300 group-hover:scale-110 group-hover:drop-shadow-[0_0_8px_rgba(52,211,153,0.5)]" />
+              </button>
+            )}
+
+            {/* Close Icon */}
+            {onClose && (
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onClose?.();
+                }}
+                className="flex items-center justify-center w-9 h-9 cursor-pointer group active:scale-95 transition-all duration-300"
+              >
+                <X className="h-5 w-5 text-[#6b7280] group-hover:text-[#f87171] transition-all duration-300 group-hover:scale-110 group-hover:drop-shadow-[0_0_8px_rgba(248,113,113,0.5)]" />
+              </button>
+            )}
           </div>
-
-          {/* Expand Icon */}
-          {onExpand && (
-            <button
-              onClick={(e) => {
-                e.stopPropagation();
-                onExpand?.();
-              }}
-              className="flex items-center justify-center w-9 h-9 cursor-pointer group active:scale-95 transition-all duration-300"
-            >
-              <Maximize2 className="h-5 w-5 text-[#6b7280] group-hover:text-[#34d399] transition-all duration-300 group-hover:scale-110 group-hover:drop-shadow-[0_0_8px_rgba(52,211,153,0.5)]" />
-            </button>
-          )}
-
-          {/* Close Icon */}
-          {onClose && (
-            <button
-              onClick={(e) => {
-                e.stopPropagation();
-                onClose?.();
-              }}
-              className="flex items-center justify-center w-9 h-9 cursor-pointer group active:scale-95 transition-all duration-300"
-            >
-              <X className="h-5 w-5 text-[#6b7280] group-hover:text-[#f87171] transition-all duration-300 group-hover:scale-110 group-hover:drop-shadow-[0_0_8px_rgba(248,113,113,0.5)]" />
-            </button>
-          )}
-        </div>
+        )}
       </Card>
     );
   }
