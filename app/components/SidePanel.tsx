@@ -2,7 +2,7 @@
 
 import React, { useState } from 'react';
 
-// Icons representing the 6 features
+// Icons representing the features
 function TweetsIcon() {
     return (
         <svg viewBox="0 0 24 24" className="w-5 h-5" fill="currentColor">
@@ -63,24 +63,56 @@ interface IconItem {
     icon: () => React.ReactElement;
     label: string;
     onClick?: () => void;
+    isActive?: boolean;
+    activeColor?: string;
 }
 
 interface SidePanelProps {
-    onGrokipediaClick?: () => void;
-    onGrokRadioClick?: () => void;
-    onPredictionMarketsClick?: () => void;
+    hasCity?: boolean;
+    showGrokipedia?: boolean;
+    showGrokRadio?: boolean;
+    showPredictionMarkets?: boolean;
+    onToggleGrokipedia?: () => void;
+    onToggleGrokRadio?: () => void;
+    onTogglePredictionMarkets?: () => void;
 }
 
-export default function SidePanel({ onGrokipediaClick, onGrokRadioClick, onPredictionMarketsClick }: SidePanelProps) {
+export default function SidePanel({ 
+    hasCity = false,
+    showGrokipedia = false,
+    showGrokRadio = false,
+    showPredictionMarkets = false,
+    onToggleGrokipedia,
+    onToggleGrokRadio,
+    onTogglePredictionMarkets,
+}: SidePanelProps) {
     const [hoveredIndex, setHoveredIndex] = useState<number | null>(null);
     
     const ICON_ITEMS: IconItem[] = [
         { icon: TweetsIcon, label: 'Tweets' },
         { icon: LiveSpacesIcon, label: 'X Live Spaces' },
         { icon: PodcastIcon, label: 'Podcast' },
-        { icon: RadioIcon, label: 'Grok Radio', onClick: onGrokRadioClick },
-        { icon: GrokipediaIcon, label: 'Grokipedia', onClick: onGrokipediaClick },
-        { icon: PredictionMarketsIcon, label: 'Prediction Markets', onClick: onPredictionMarketsClick },
+        { 
+            icon: RadioIcon, 
+            label: 'Grok Radio', 
+            onClick: hasCity ? onToggleGrokRadio : undefined,
+            isActive: hasCity && showGrokRadio,
+            activeColor: 'emerald'
+        },
+        { 
+            icon: GrokipediaIcon, 
+            label: 'Grokipedia', 
+            onClick: hasCity ? onToggleGrokipedia : undefined,
+            isActive: hasCity && showGrokipedia,
+            activeColor: 'blue'
+        },
+        { 
+            icon: PredictionMarketsIcon, 
+            label: 'Prediction Markets', 
+            onClick: hasCity ? onTogglePredictionMarkets : undefined,
+            isActive: hasCity && showPredictionMarkets,
+            activeColor: 'purple'
+        },
         { icon: StarlinkIcon, label: 'Starlink' },
     ];
 
@@ -94,6 +126,26 @@ export default function SidePanel({ onGrokipediaClick, onGrokRadioClick, onPredi
     const cornerRadius = 24;
     const totalHeight = totalIconsHeight + (paddingY * 2) + (curveHeight * 2);
     const panelWidth = 60;
+
+    const getActiveStyles = (item: IconItem, isHovered: boolean) => {
+        if (item.isActive) {
+            const colorMap: Record<string, string> = {
+                emerald: 'rgba(52, 211, 153, 0.3)',
+                blue: 'rgba(96, 165, 250, 0.3)',
+                purple: 'rgba(168, 85, 247, 0.3)',
+            };
+            const glowMap: Record<string, string> = {
+                emerald: '0 0 12px rgba(52, 211, 153, 0.5)',
+                blue: '0 0 12px rgba(96, 165, 250, 0.5)',
+                purple: '0 0 12px rgba(168, 85, 247, 0.5)',
+            };
+            return {
+                background: colorMap[item.activeColor || 'blue'],
+                boxShadow: glowMap[item.activeColor || 'blue'],
+            };
+        }
+        return {};
+    };
 
     return (
         <div
@@ -156,12 +208,15 @@ export default function SidePanel({ onGrokipediaClick, onGrokRadioClick, onPredi
                     >
                         {/* Icon button */}
                         <button
-                            className="icon-button relative z-10"
+                            className={`icon-button relative z-10 rounded-xl transition-all duration-200 ${
+                                item.isActive ? 'ring-1 ring-white/20' : ''
+                            } ${!item.onClick && hasCity ? 'opacity-40' : ''}`}
                             style={{
                                 width: iconSize,
                                 height: iconSize,
                                 transform: hoveredIndex === index ? 'scale(1.15)' : 'scale(1)',
-                                transition: 'transform 0.15s ease-out',
+                                transition: 'transform 0.15s ease-out, background 0.2s, box-shadow 0.2s',
+                                ...getActiveStyles(item, hoveredIndex === index),
                             }}
                             onClick={item.onClick}
                             disabled={!item.onClick}
@@ -179,9 +234,7 @@ export default function SidePanel({ onGrokipediaClick, onGrokRadioClick, onPredi
                                 paddingLeft: iconSize + 8,
                                 paddingRight: hoveredIndex === index ? 16 : 0,
                                 background: 'rgba(15, 20, 25, 0.98)',
-                                // Rounded only on right side
                                 borderRadius: '0 20px 20px 0',
-                                // No border on left to blend with sidebar
                                 borderTop: 'none',
                                 borderBottom: 'none',
                                 borderLeft: 'none',
@@ -195,7 +248,7 @@ export default function SidePanel({ onGrokipediaClick, onGrokRadioClick, onPredi
                         >
                             {/* Label */}
                             <span
-                                className="text-sm font-medium text-white whitespace-nowrap"
+                                className="text-sm font-medium text-white whitespace-nowrap flex items-center gap-2"
                                 style={{
                                     opacity: hoveredIndex === index ? 1 : 0,
                                     transition: hoveredIndex === index
@@ -204,6 +257,12 @@ export default function SidePanel({ onGrokipediaClick, onGrokRadioClick, onPredi
                                 }}
                             >
                                 {item.label}
+                                {item.isActive && (
+                                    <span className="text-xs px-1.5 py-0.5 bg-white/10 rounded text-white/70">ON</span>
+                                )}
+                                {hasCity && item.onClick && !item.isActive && (
+                                    <span className="text-xs px-1.5 py-0.5 bg-white/5 rounded text-white/40">OFF</span>
+                                )}
                             </span>
                         </div>
                     </div>
