@@ -12,6 +12,7 @@ import GrokRadio from './components/GrokRadio';
 import PredictionMarkets from './components/PredictionMarkets';
 import GrokImagine from './components/GrokImagine';
 import OverviewCard, { OverviewCardData } from './components/OverviewCard';
+import LiveTweetFeed from './components/LiveTweetFeed';
 import GrokEarthLogo from './assets/GrokEarth.png';
 import { GEInput } from '@/components/GEInput';
 import { Hotspot } from '@/app/lib/types';
@@ -31,6 +32,7 @@ export default function ClientHome({ apiKey }: ClientHomeProps) {
   const [showPredictionMarkets, setShowPredictionMarkets] = useState(true);
   const [showGrokImagine, setShowGrokImagine] = useState(true);
   const [showOverviewCard, setShowOverviewCard] = useState(true);
+  const [showLiveTweetFeed, setShowLiveTweetFeed] = useState(true);
   
   // OverviewCard state
   const [overviewCardData, setOverviewCardData] = useState<OverviewCardData | null>(null);
@@ -77,6 +79,7 @@ export default function ClientHome({ apiKey }: ClientHomeProps) {
       setShowPredictionMarkets(true);
       setShowGrokImagine(true);
       setShowOverviewCard(true);
+      setShowLiveTweetFeed(true);
       // Fetch overview card data for the selected hotspot
       fetchOverviewCard(hotspot.name);
     }
@@ -91,6 +94,7 @@ export default function ClientHome({ apiKey }: ClientHomeProps) {
     setShowPredictionMarkets(true);
     setShowGrokImagine(true);
     setShowOverviewCard(true);
+    setShowLiveTweetFeed(true);
     setOverviewCardData(null);
   };
 
@@ -159,6 +163,7 @@ export default function ClientHome({ apiKey }: ClientHomeProps) {
       setShowGrokRadio(true);
       setShowPredictionMarkets(true);
       setShowGrokImagine(true);
+      setShowLiveTweetFeed(true);
 
       // Geocode the location to get coordinates
       const coordinates = await geocodeLocation(locationName);
@@ -265,6 +270,17 @@ export default function ClientHome({ apiKey }: ClientHomeProps) {
             onClose={() => {
               setShowOverviewCard(false);
             }} 
+          />
+        )}
+      </AnimatePresence>
+
+      {/* Live Tweet Feed - opens when a city is selected */}
+      <AnimatePresence>
+        {selectedCity && showLiveTweetFeed && (
+          <LiveTweetFeed
+            key={`tweets-${selectedCity}`}
+            city={selectedCity}
+            onClose={() => setShowLiveTweetFeed(false)}
           />
         )}
       </AnimatePresence>

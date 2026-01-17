@@ -51,6 +51,7 @@ const GECARD_LOCATIONS = [
   { name: 'Sydney', lat: -33.8688, lng: 151.2093, region: 'Sydney' },
   { name: 'São Paulo', lat: -23.5505, lng: -46.6333, region: 'São Paulo' },
   { name: 'Mumbai', lat: 19.076, lng: 72.8777, region: 'Mumbai' },
+  { name: 'Dubai', lat: 25.2048, lng: 55.2708, region: 'Dubai' },
 ];
 
 // Generate heatmap data from blue zones (emerging trends)
@@ -258,7 +259,7 @@ const Globe = forwardRef<GlobeRef, GlobeProps>(({ apiKey, onHotspotSelect }, ref
     root.render(
       <TweetList
         region={location.region}
-        maxTweets={1}
+        maxTweets={3}
         autoRotate={true}
       />
     );
@@ -591,30 +592,31 @@ const Globe = forwardRef<GlobeRef, GlobeProps>(({ apiKey, onHotspotSelect }, ref
           .setLngLat([lng, lat])
           .addTo(map.current);
         
+        // TweetList disabled for non-hotspot clicks
         // Create and add TweetList marker for the clicked location
-        const tweetListElement = document.createElement('div');
-        tweetListElement.style.width = '200px';
-        tweetListElement.style.pointerEvents = 'auto';
-        tweetListElement.style.fontSize = '0.75rem';
-        tweetListElement.style.transform = 'scale(0.9)';
-        tweetListElement.style.transformOrigin = 'bottom left';
+        // const tweetListElement = document.createElement('div');
+        // tweetListElement.style.width = '200px';
+        // tweetListElement.style.pointerEvents = 'auto';
+        // tweetListElement.style.fontSize = '0.75rem';
+        // tweetListElement.style.transform = 'scale(0.9)';
+        // tweetListElement.style.transformOrigin = 'bottom left';
 
-        const root = createRoot(tweetListElement);
-        root.render(
-          <TweetList
-            region={locationName}
-            maxTweets={1}
-            autoRotate={true}
-          />
-        );
+        // const root = createRoot(tweetListElement);
+        // root.render(
+        //   <TweetList
+        //     region={locationName}
+        //     maxTweets={1}
+        //     autoRotate={true}
+        //   />
+        // );
         
-        clickTweetListRef.current = new mapboxgl.Marker({
-          element: tweetListElement,
-          anchor: 'bottom-left',
-          offset: [10, -10]
-        })
-          .setLngLat([lng, lat])
-          .addTo(map.current);
+        // clickTweetListRef.current = new mapboxgl.Marker({
+        //   element: tweetListElement,
+        //   anchor: 'bottom-left',
+        //   offset: [10, -10]
+        // })
+        //   .setLngLat([lng, lat])
+        //   .addTo(map.current);
         
         // Create a temporary hotspot object for the clicked location
         const tempHotspot: Hotspot = {
