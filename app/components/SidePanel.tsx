@@ -82,11 +82,13 @@ interface SidePanelProps {
     showGrokRadio?: boolean;
     showPredictionMarkets?: boolean;
     showGrokImagine?: boolean;
+    showStarlink?: boolean;
     showLiveTweetFeed?: boolean;
     onToggleGrokipedia?: () => void;
     onToggleGrokRadio?: () => void;
     onTogglePredictionMarkets?: () => void;
     onToggleGrokImagine?: () => void;
+    onToggleStarlink?: () => void;
     onToggleLiveTweetFeed?: () => void;
 }
 
@@ -96,11 +98,13 @@ export default function SidePanel({
     showGrokRadio = false,
     showPredictionMarkets = false,
     showGrokImagine = false,
+    showStarlink = false,
     showLiveTweetFeed = false,
     onToggleGrokipedia,
     onToggleGrokRadio,
     onTogglePredictionMarkets,
     onToggleGrokImagine,
+    onToggleStarlink,
     onToggleLiveTweetFeed,
 }: SidePanelProps) {
     const [hoveredIndex, setHoveredIndex] = useState<number | null>(null);
@@ -143,7 +147,13 @@ export default function SidePanel({
             isActive: hasCity && showGrokImagine,
             activeColor: 'cyan'
         },
-        { icon: StarlinkIcon, label: 'Starlink' },
+        {
+            icon: StarlinkIcon,
+            label: 'Starlink',
+            onClick: onToggleStarlink,
+            isActive: showStarlink,
+            activeColor: 'emerald'
+        },
     ];
 
     const iconSize = 40;
