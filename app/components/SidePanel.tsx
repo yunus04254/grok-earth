@@ -92,11 +92,15 @@ interface SidePanelProps {
     showPredictionMarkets?: boolean;
     showGrokImagine?: boolean;
     showLatestNews?: boolean;
+    showStarlink?: boolean;
+    showLiveTweetFeed?: boolean;
     onToggleGrokipedia?: () => void;
     onToggleGrokRadio?: () => void;
     onTogglePredictionMarkets?: () => void;
     onToggleGrokImagine?: () => void;
     onToggleLatestNews?: () => void;
+    onToggleStarlink?: () => void;
+    onToggleLiveTweetFeed?: () => void;
 }
 
 export default function SidePanel({
@@ -106,16 +110,19 @@ export default function SidePanel({
     showPredictionMarkets = false,
     showGrokImagine = false,
     showLatestNews = false,
+    showStarlink = false,
+    showLiveTweetFeed = false,
     onToggleGrokipedia,
     onToggleGrokRadio,
     onTogglePredictionMarkets,
     onToggleGrokImagine,
     onToggleLatestNews,
+    onToggleStarlink,
+    onToggleLiveTweetFeed,
 }: SidePanelProps) {
     const [hoveredIndex, setHoveredIndex] = useState<number | null>(null);
 
     const ICON_ITEMS: IconItem[] = [
-        { icon: TweetsIcon, label: 'Tweets' },
         { icon: LiveSpacesIcon, label: 'X Live Spaces' },
         { icon: PodcastIcon, label: 'Podcast' },
         {
@@ -133,18 +140,18 @@ export default function SidePanel({
             activeColor: 'blue'
         },
         {
-            icon: PredictionMarketsIcon,
-            label: 'Prediction Markets',
-            onClick: hasCity ? onTogglePredictionMarkets : undefined,
-            isActive: hasCity && showPredictionMarkets,
-            activeColor: 'purple'
-        },
-        {
             icon: ImagineIcon,
             label: 'Grok Imagine',
             onClick: hasCity ? onToggleGrokImagine : undefined,
             isActive: hasCity && showGrokImagine,
             activeColor: 'cyan'
+        },
+        {
+            icon: TweetsIcon,
+            label: 'X Posts',
+            onClick: hasCity ? onToggleLiveTweetFeed : undefined,
+            isActive: hasCity && showLiveTweetFeed,
+            activeColor: 'blue'
         },
         {
             icon: LatestNewsIcon,
@@ -153,7 +160,20 @@ export default function SidePanel({
             isActive: hasCity && showLatestNews,
             activeColor: 'orange'
         },
-        { icon: StarlinkIcon, label: 'Starlink' },
+        {
+            icon: PredictionMarketsIcon,
+            label: 'Prediction Markets',
+            onClick: hasCity ? onTogglePredictionMarkets : undefined,
+            isActive: hasCity && showPredictionMarkets,
+            activeColor: 'purple'
+        },
+        {
+            icon: StarlinkIcon,
+            label: 'Starlink',
+            onClick: onToggleStarlink,
+            isActive: showStarlink,
+            activeColor: 'emerald'
+        },
     ];
 
     const iconSize = 40;
@@ -167,7 +187,7 @@ export default function SidePanel({
     const totalHeight = totalIconsHeight + (paddingY * 2) + (curveHeight * 2);
     const panelWidth = 60;
 
-    const getActiveStyles = (item: IconItem, isHovered: boolean) => {
+    const getActiveStyles = (item: IconItem) => {
         if (item.isActive) {
             const colorMap: Record<string, string> = {
                 emerald: 'rgba(52, 211, 153, 0.3)',
@@ -259,7 +279,7 @@ export default function SidePanel({
                                 height: iconSize,
                                 transform: hoveredIndex === index ? 'scale(1.15)' : 'scale(1)',
                                 transition: 'transform 0.15s ease-out, background 0.2s, box-shadow 0.2s',
-                                ...getActiveStyles(item, hoveredIndex === index),
+                                ...getActiveStyles(item),
                             }}
                             onClick={item.onClick}
                             disabled={!item.onClick}

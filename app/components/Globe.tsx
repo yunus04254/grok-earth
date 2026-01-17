@@ -6,6 +6,7 @@ import mapboxgl from 'mapbox-gl';
 import type { Hotspot, HotspotsResponse } from '@/app/lib/types';
 import { MARKER_STYLES } from '@/app/lib/types';
 import { TweetList } from '@/components/TweetList';
+import { StarlinkSatellite, useStarlink } from '@/app/hooks/useStarlink';
 
 export interface GlobeRef {
   flyToHotspot: (hotspot: Hotspot) => void;
@@ -16,6 +17,8 @@ export interface GlobeRef {
 interface GlobeProps {
   apiKey: string;
   onHotspotSelect?: (hotspot: Hotspot) => void;
+  onStarlinkSelect?: (satellite: StarlinkSatellite | null) => void;
+  showStarlink?: boolean;
 }
 
 // Fallback data while API loads or fails
@@ -51,6 +54,7 @@ const GECARD_LOCATIONS = [
   { name: 'Sydney', lat: -33.8688, lng: 151.2093, region: 'Sydney' },
   { name: 'São Paulo', lat: -23.5505, lng: -46.6333, region: 'São Paulo' },
   { name: 'Mumbai', lat: 19.076, lng: 72.8777, region: 'Mumbai' },
+  { name: 'Dubai', lat: 25.2048, lng: 55.2708, region: 'Dubai' },
 ];
 
 // Generate heatmap data from blue zones (emerging trends)
@@ -92,20 +96,20 @@ function generateHeatmapFeatures(blueZones: Hotspot[]) {
 // Generate 3D column polygons for red hotspots
 function generateColumnFeatures(hotspots: Hotspot[]) {
   const features: any[] = [];
-  
+
   hotspots.forEach(hotspot => {
     // Create a circular polygon around the hotspot location
     const radius = 0.15; // Degrees (~16km at equator)
     const sides = 32; // Smooth circle
     const coordinates: number[][] = [];
-    
+
     for (let i = 0; i <= sides; i++) {
       const angle = (i / sides) * Math.PI * 2;
       const lng = hotspot.lng + radius * Math.cos(angle);
       const lat = hotspot.lat + radius * Math.sin(angle);
       coordinates.push([lng, lat]);
     }
-    
+
     features.push({
       type: 'Feature',
       geometry: {
@@ -121,14 +125,15 @@ function generateColumnFeatures(hotspots: Hotspot[]) {
       }
     });
   });
-  
+
   return { type: 'FeatureCollection', features };
 }
 
-const Globe = forwardRef<GlobeRef, GlobeProps>(({ apiKey, onHotspotSelect }, ref) => {
+const Globe = forwardRef<GlobeRef, GlobeProps>(({ apiKey, onHotspotSelect, onStarlinkSelect, showStarlink = false }, ref) => {
   const mapContainer = useRef<HTMLDivElement>(null);
   const map = useRef<mapboxgl.Map | null>(null);
   const markersRef = useRef<mapboxgl.Marker[]>([]);
+  const { satellites, loading: loadingSatellites } = useStarlink();
   const geCardMarkersRef = useRef<mapboxgl.Marker[]>([]);
   const clickMarkerRef = useRef<mapboxgl.Marker | null>(null);
   const clickTweetListRef = useRef<mapboxgl.Marker | null>(null);
@@ -172,13 +177,13 @@ const Globe = forwardRef<GlobeRef, GlobeProps>(({ apiKey, onHotspotSelect }, ref
         clickMarkerRef.current.remove();
         clickMarkerRef.current = null;
       }
-      
+
       // Remove click tweet list if it exists
       if (clickTweetListRef.current) {
         clickTweetListRef.current.remove();
         clickTweetListRef.current = null;
       }
-      
+
       // Reset to default globe view
       if (map.current) {
         map.current.flyTo({
@@ -328,27 +333,13 @@ const Globe = forwardRef<GlobeRef, GlobeProps>(({ apiKey, onHotspotSelect }, ref
         });
       }
 
-      const satelliteData = generateSatelliteGeoJSON(42);
-      map.current.addSource('satellites', {
+      // Mapbox Source for Starlink satellites (managed by useEffect)
+      map.current.addSource('starlink-source', {
         type: 'geojson',
-        data: satelliteData as any,
-      });
-
-      // @ts-ignore
-      map.current.addLayer({
-        id: 'satellites-model',
-        type: 'model',
-        source: 'satellites',
-        layout: { 'model-id': 'satellite-model' },
-        paint: {
-          'model-scale': [20000, 20000, 20000], // Even smaller satellites
-          'model-rotation': [0, 0, 0],
-          'model-translation': [0, 0, ['get', 'altitude']],
-          'model-opacity': 1,
-          'model-type': 'common-3d',
-          // @ts-ignore
-          'model-color': '#ffffff',
-        },
+        data: {
+          type: 'FeatureCollection',
+          features: []
+        }
       });
 
       // Add empty heatmap source (will be populated by separate effect)
@@ -399,7 +390,104 @@ const Globe = forwardRef<GlobeRef, GlobeProps>(({ apiKey, onHotspotSelect }, ref
             10, 0.4
           ]
         }
-      }, 'satellites-model');
+      });
+
+      // Generate fake satellites with random positions
+      const generateSatelliteGeoJSON = (count: number) => {
+        const features = [];
+        for (let i = 0; i < count; i++) {
+          const lat = Math.asin((Math.random() * 2 - 1) * 0.9) * (180 / Math.PI);
+          const lng = (Math.random() * 360) - 180;
+          const altitude = 800000 + Math.random() * 400000;
+
+          features.push({
+            type: 'Feature',
+            geometry: { type: 'Point', coordinates: [lng, lat] },
+            properties: { id: `satellite-${i}`, altitude, rotation: Math.random() * 360 },
+          });
+        }
+        return { type: 'FeatureCollection', features };
+      };
+
+      const satelliteData = generateSatelliteGeoJSON(42);
+      map.current.addSource('satellites', {
+        type: 'geojson',
+        data: satelliteData as any,
+      });
+
+      // @ts-ignore
+      map.current.addLayer({
+        id: 'satellites-model',
+        type: 'model',
+        source: 'satellites',
+        layout: { 'model-id': 'satellite-model' },
+        paint: {
+          'model-scale': [20000, 20000, 20000],
+          'model-rotation': [0, 0, 0],
+          'model-translation': [0, 0, ['get', 'altitude']],
+          'model-opacity': 1,
+          'model-type': 'common-3d',
+          // @ts-ignore
+          'model-color': '#ffffff',
+        },
+      });
+
+      // Click handler for 3D satellite models to open StarlinkCard
+      map.current.on('click', 'satellites-model', (e) => {
+        if (e.features && e.features.length > 0 && onStarlinkSelect) {
+          const feature = e.features[0];
+          const satIndex = parseInt(feature.properties?.id?.replace('satellite-', '') || '0');
+
+          // Generate plausible Starlink data
+          const versions = ['v1.0', 'v1.5', 'v2.0 Mini'];
+          const version = versions[satIndex % versions.length];
+
+          // Mass varies by version: v1.0 ~227kg, v1.5 ~260kg, v2.0 Mini ~295kg
+          const baseMass = version === 'v1.0' ? 227 : version === 'v1.5' ? 260 : 295;
+          const mass = baseMass + Math.floor(Math.random() * 15);
+
+          // Orbital velocity ~7.5 km/s with small variation
+          const velocity = (7.4 + Math.random() * 0.3).toFixed(2);
+
+          // Altitude 540-570 km (LEO)
+          const altitude = 540 + Math.floor(Math.random() * 30);
+
+          // Generate launch date between 2019-2026
+          const launchYear = 2019 + Math.floor(Math.random() * 8);
+          const launchMonth = String(Math.floor(Math.random() * 12) + 1).padStart(2, '0');
+          const launchDay = String(Math.floor(Math.random() * 28) + 1).padStart(2, '0');
+          const launchDate = `${launchYear}-${launchMonth}-${launchDay}`;
+
+          // Generate unique ID (Starlink uses 5-digit IDs)
+          const noradId = 44000 + satIndex * 50 + Math.floor(Math.random() * 50);
+
+          const mockSatellite = {
+            id: `STARLINK-${1000 + satIndex}`,
+            noradId: noradId,
+            name: `STARLINK-${1000 + satIndex}`,
+            lat: e.lngLat.lat,
+            lng: e.lngLat.lng,
+            height: altitude,
+            tle1: '',
+            tle2: '',
+            launchDate: launchDate,
+            // Extended data for StarlinkCard
+            velocity: `${velocity} km/s`,
+            mass: `${mass} kg`,
+            busType: `Starlink ${version}`,
+            manufacturer: 'SpaceX',
+          };
+          onStarlinkSelect(mockSatellite as any);
+        }
+      });
+
+      // Cursor pointer on 3D model hover
+      map.current.on('mouseenter', 'satellites-model', () => {
+        if (map.current) map.current.getCanvas().style.cursor = 'pointer';
+      });
+      map.current.on('mouseleave', 'satellites-model', () => {
+        if (map.current) map.current.getCanvas().style.cursor = '';
+      });
 
       // Add empty 3D columns source (will be populated by separate effect)
       map.current.addSource('hotspot-columns', {
@@ -440,7 +528,7 @@ const Globe = forwardRef<GlobeRef, GlobeProps>(({ apiKey, onHotspotSelect }, ref
           // Vertical gradient effect
           'fill-extrusion-vertical-gradient': true
         }
-      }, 'satellites-model');
+      });
 
       // Add tweet feed markers around the globe
       GECARD_LOCATIONS.forEach(location => {
@@ -486,10 +574,10 @@ const Globe = forwardRef<GlobeRef, GlobeProps>(({ apiKey, onHotspotSelect }, ref
     // Add double-click handler for 3D columns
     map.current.on('dblclick', 'hotspot-columns-3d', (e) => {
       if (!map.current || !e.features || e.features.length === 0) return;
-      
+
       const feature = e.features[0];
       const { name, volume, topTrend, lat, lng } = feature.properties as any;
-      
+
       // Create hotspot object from the column data
       const hotspot: Hotspot = {
         name,
@@ -499,12 +587,12 @@ const Globe = forwardRef<GlobeRef, GlobeProps>(({ apiKey, onHotspotSelect }, ref
         type: 'red',
         topTrend
       };
-      
+
       // Notify parent
       if (onHotspotSelect) {
         onHotspotSelect(hotspot);
       }
-      
+
       // Fly to location
       map.current.flyTo({
         center: [lng, lat],
@@ -529,11 +617,11 @@ const Globe = forwardRef<GlobeRef, GlobeProps>(({ apiKey, onHotspotSelect }, ref
       const features = map.current!.queryRenderedFeatures(e.point);
       const clickedOnMarker = (e.originalEvent.target as HTMLElement).closest('.pulse-marker');
       const clickedOnColumn = features.some(f => f.layer && f.layer.id === 'hotspot-columns-3d');
-      
+
       // Only handle double-click if it wasn't on a marker or column
       if (!clickedOnMarker && !clickedOnColumn && map.current) {
         const { lng, lat } = e.lngLat;
-        
+
         // Fetch region name using Mapbox reverse geocoding first
         let locationName = `Location (${lat.toFixed(2)}°, ${lng.toFixed(2)}°)`;
         try {
@@ -547,7 +635,7 @@ const Globe = forwardRef<GlobeRef, GlobeProps>(({ apiKey, onHotspotSelect }, ref
               const placeFeature = data.features.find((f: any) => f.place_type?.includes('place'));
               const regionFeature = data.features.find((f: any) => f.place_type?.includes('region'));
               const countryFeature = data.features.find((f: any) => f.place_type?.includes('country'));
-              
+
               // Use just the text (not full place_name) to avoid long addresses
               const feature = placeFeature || regionFeature || countryFeature || data.features[0];
               locationName = feature.text || locationName;
@@ -557,17 +645,17 @@ const Globe = forwardRef<GlobeRef, GlobeProps>(({ apiKey, onHotspotSelect }, ref
           console.warn('Failed to fetch location name:', error);
           // Fall back to coordinates if geocoding fails
         }
-        
+
         // Remove previous click marker if it exists
         if (clickMarkerRef.current) {
           clickMarkerRef.current.remove();
         }
-        
+
         // Remove previous click tweet list if it exists
         if (clickTweetListRef.current) {
           clickTweetListRef.current.remove();
         }
-        
+
         // Create red pinpoint marker element
         const pinElement = document.createElement('div');
         pinElement.className = 'click-pinpoint';
@@ -582,7 +670,7 @@ const Globe = forwardRef<GlobeRef, GlobeProps>(({ apiKey, onHotspotSelect }, ref
             cursor: pointer;
           "></div>
         `;
-        
+
         // Add new click marker
         clickMarkerRef.current = new mapboxgl.Marker({
           element: pinElement,
@@ -590,32 +678,33 @@ const Globe = forwardRef<GlobeRef, GlobeProps>(({ apiKey, onHotspotSelect }, ref
         })
           .setLngLat([lng, lat])
           .addTo(map.current);
-        
-        // Create and add TweetList marker for the clicked location
-        const tweetListElement = document.createElement('div');
-        tweetListElement.style.width = '200px';
-        tweetListElement.style.pointerEvents = 'auto';
-        tweetListElement.style.fontSize = '0.75rem';
-        tweetListElement.style.transform = 'scale(0.9)';
-        tweetListElement.style.transformOrigin = 'bottom left';
 
-        const root = createRoot(tweetListElement);
-        root.render(
-          <TweetList
-            region={locationName}
-            maxTweets={1}
-            autoRotate={true}
-          />
-        );
-        
-        clickTweetListRef.current = new mapboxgl.Marker({
-          element: tweetListElement,
-          anchor: 'bottom-left',
-          offset: [10, -10]
-        })
-          .setLngLat([lng, lat])
-          .addTo(map.current);
-        
+        // TweetList disabled for non-hotspot clicks
+        // Create and add TweetList marker for the clicked location
+        // const tweetListElement = document.createElement('div');
+        // tweetListElement.style.width = '200px';
+        // tweetListElement.style.pointerEvents = 'auto';
+        // tweetListElement.style.fontSize = '0.75rem';
+        // tweetListElement.style.transform = 'scale(0.9)';
+        // tweetListElement.style.transformOrigin = 'bottom left';
+
+        // const root = createRoot(tweetListElement);
+        // root.render(
+        //   <TweetList
+        //     region={locationName}
+        //     maxTweets={1}
+        //     autoRotate={true}
+        //   />
+        // );
+
+        // clickTweetListRef.current = new mapboxgl.Marker({
+        //   element: tweetListElement,
+        //   anchor: 'bottom-left',
+        //   offset: [10, -10]
+        // })
+        //   .setLngLat([lng, lat])
+        //   .addTo(map.current);
+
         // Create a temporary hotspot object for the clicked location
         const tempHotspot: Hotspot = {
           name: locationName,
@@ -624,12 +713,12 @@ const Globe = forwardRef<GlobeRef, GlobeProps>(({ apiKey, onHotspotSelect }, ref
           volume: 0,
           type: 'red'
         };
-        
+
         // Notify parent if callback exists
         if (onHotspotSelect) {
           onHotspotSelect(tempHotspot);
         }
-        
+
         // Fly to the clicked location
         map.current.flyTo({
           center: [lng, lat],
@@ -729,6 +818,56 @@ const Globe = forwardRef<GlobeRef, GlobeProps>(({ apiKey, onHotspotSelect }, ref
       heatmapSource.setData(generateHeatmapFeatures(hotspots.blueZones) as any);
     }
   }, [hotspots, createRedMarker, isLoading]);
+
+  // Update Starlink data when satellites change
+  useEffect(() => {
+    if (!map.current || !map.current.getSource('starlink-source')) return;
+
+    const source = map.current.getSource('starlink-source') as mapboxgl.GeoJSONSource;
+
+    if (satellites.length > 0) {
+      const features: GeoJSON.Feature[] = satellites.map((sat: StarlinkSatellite) => ({
+        type: 'Feature',
+        geometry: {
+          type: 'Point',
+          coordinates: [sat.lng, sat.lat]
+        },
+        properties: {
+          id: sat.id,
+          name: sat.name,
+          satelliteData: JSON.stringify(sat) // Store full data for click handler
+        }
+      }));
+
+      source.setData({
+        type: 'FeatureCollection',
+        features
+      });
+    }
+  }, [satellites]);
+
+  // Toggle Starlink Visibility
+  useEffect(() => {
+    if (!map.current) return;
+
+    const updateVisibility = () => {
+      if (map.current && map.current.getLayer('starlink-layer')) {
+        const visibility = showStarlink ? 'visible' : 'none';
+        map.current.setLayoutProperty('starlink-layer', 'visibility', visibility);
+        map.current.setLayoutProperty('starlink-glow', 'visibility', visibility);
+      }
+    };
+
+    // Try immediately
+    updateVisibility();
+
+    // Also listen for style load in case layers aren't ready yet
+    if (map.current.isStyleLoaded()) {
+      updateVisibility();
+    } else {
+      map.current.once('style.load', updateVisibility);
+    }
+  }, [showStarlink]);
 
   return (
     <div className="relative w-full" style={{ height: '117.65vh' }}>

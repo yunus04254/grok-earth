@@ -13,10 +13,13 @@ import PredictionMarkets from './components/PredictionMarkets';
 import GrokImagine from './components/GrokImagine';
 import LatestNews from './components/LatestNews';
 import OverviewCard, { OverviewCardData } from './components/OverviewCard';
+import LiveTweetFeed from './components/LiveTweetFeed';
 import GrokEarthLogo from './assets/GrokEarth.png';
 import { GEInput } from '@/components/GEInput';
 import { Hotspot } from '@/app/lib/types';
 import { Globe as GlobeIcon } from 'lucide-react';
+import { StarlinkSatellite } from '@/app/hooks/useStarlink';
+import StarlinkCard from './components/StarlinkCard';
 
 interface ClientHomeProps {
   apiKey: string;
@@ -33,12 +36,17 @@ export default function ClientHome({ apiKey }: ClientHomeProps) {
   const [showGrokImagine, setShowGrokImagine] = useState(true);
   const [showLatestNews, setShowLatestNews] = useState(true);
   const [showOverviewCard, setShowOverviewCard] = useState(true);
-  
+  const [showLiveTweetFeed, setShowLiveTweetFeed] = useState(true);
+
+  // Starlink State
+  const [showStarlink, setShowStarlink] = useState(false);
+  const [selectedSatellite, setSelectedSatellite] = useState<StarlinkSatellite | null>(null);
+
   // OverviewCard state
   const [overviewCardData, setOverviewCardData] = useState<OverviewCardData | null>(null);
   const [isLoadingOverview, setIsLoadingOverview] = useState(false);
   const [inputValue, setInputValue] = useState('');
-  
+
   const globeRef = useRef<GlobeRef>(null);
 
   // Fetch overview card data for a location
@@ -80,6 +88,7 @@ export default function ClientHome({ apiKey }: ClientHomeProps) {
       setShowGrokImagine(true);
       setShowLatestNews(true);
       setShowOverviewCard(true);
+      setShowLiveTweetFeed(true);
       // Fetch overview card data for the selected hotspot
       fetchOverviewCard(hotspot.name);
     }
@@ -95,6 +104,7 @@ export default function ClientHome({ apiKey }: ClientHomeProps) {
     setShowGrokImagine(true);
     setShowLatestNews(true);
     setShowOverviewCard(true);
+    setShowLiveTweetFeed(true);
     setOverviewCardData(null);
   };
 
@@ -155,7 +165,7 @@ export default function ClientHome({ apiKey }: ClientHomeProps) {
 
       // Extract location name for the cards (use display_name or name)
       const locationName = data.place?.display_name || data.place?.name || query;
-      
+
       // Set selectedCity to trigger all the other cards (Grokipedia, GrokRadio, PredictionMarkets)
       // This mimics the behavior of clicking a hotspot
       setSelectedCity(locationName);
@@ -164,6 +174,7 @@ export default function ClientHome({ apiKey }: ClientHomeProps) {
       setShowPredictionMarkets(true);
       setShowGrokImagine(true);
       setShowLatestNews(true);
+      setShowLiveTweetFeed(true);
 
       // Geocode the location to get coordinates
       const coordinates = await geocodeLocation(locationName);
@@ -175,7 +186,7 @@ export default function ClientHome({ apiKey }: ClientHomeProps) {
 
       // Show the overview card
       setShowOverviewCard(true);
-      
+
       // Clear the input after successful submission
       setInputValue('');
     } catch (error) {
@@ -191,6 +202,8 @@ export default function ClientHome({ apiKey }: ClientHomeProps) {
         ref={globeRef}
         apiKey={apiKey}
         onHotspotSelect={handleHotspotSelect}
+        showStarlink={showStarlink}
+        onStarlinkSelect={setSelectedSatellite}
       />
       <SidePanel
         hasCity={!!selectedCity}
@@ -199,13 +212,27 @@ export default function ClientHome({ apiKey }: ClientHomeProps) {
         showPredictionMarkets={showPredictionMarkets}
         showGrokImagine={showGrokImagine}
         showLatestNews={showLatestNews}
+        showStarlink={showStarlink}
+        showLiveTweetFeed={showLiveTweetFeed}
         onToggleGrokipedia={() => setShowGrokipedia(!showGrokipedia)}
         onToggleGrokRadio={() => setShowGrokRadio(!showGrokRadio)}
         onTogglePredictionMarkets={() => setShowPredictionMarkets(!showPredictionMarkets)}
         onToggleGrokImagine={() => setShowGrokImagine(!showGrokImagine)}
         onToggleLatestNews={() => setShowLatestNews(!showLatestNews)}
+        onToggleStarlink={() => setShowStarlink(!showStarlink)}
+        onToggleLiveTweetFeed={() => setShowLiveTweetFeed(!showLiveTweetFeed)}
       />
       <MarkerKey />
+
+      {/* Starlink Card */}
+      <AnimatePresence>
+        {selectedSatellite && (
+          <StarlinkCard
+            satellite={selectedSatellite}
+            onClose={() => setSelectedSatellite(null)}
+          />
+        )}
+      </AnimatePresence>
 
       {/* City Trends Card - Hidden */}
       {/* <AnimatePresence>
@@ -276,13 +303,24 @@ export default function ClientHome({ apiKey }: ClientHomeProps) {
       {/* Overview Card - opens when input is submitted or hotspot is selected */}
       <AnimatePresence>
         {selectedCity && showOverviewCard && (
-          <OverviewCard 
+          <OverviewCard
             key={`overview-${overviewCardData?.place?.name || selectedCity}`}
             data={overviewCardData}
             isLoading={isLoadingOverview}
             onClose={() => {
               setShowOverviewCard(false);
-            }} 
+            }}
+          />
+        )}
+      </AnimatePresence>
+
+      {/* Live Tweet Feed - opens when a city is selected */}
+      <AnimatePresence>
+        {selectedCity && showLiveTweetFeed && (
+          <LiveTweetFeed
+            key={`tweets-${selectedCity}`}
+            city={selectedCity}
+            onClose={() => setShowLiveTweetFeed(false)}
           />
         )}
       </AnimatePresence>
