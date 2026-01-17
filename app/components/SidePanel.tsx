@@ -68,6 +68,15 @@ function ImagineIcon() {
     );
 }
 
+function LatestNewsIcon() {
+    return (
+        <svg viewBox="0 0 24 24" className="w-5 h-5" fill="currentColor">
+            <path d="M4 6h16v2H4zm0 5h16v2H4zm0 5h16v2H4z" />
+            <path d="M2 4v16h20V4H2zm18 14H4V6h16v12z" />
+        </svg>
+    );
+}
+
 interface IconItem {
     icon: () => React.ReactElement;
     label: string;
@@ -82,10 +91,12 @@ interface SidePanelProps {
     showGrokRadio?: boolean;
     showPredictionMarkets?: boolean;
     showGrokImagine?: boolean;
+    showLatestNews?: boolean;
     onToggleGrokipedia?: () => void;
     onToggleGrokRadio?: () => void;
     onTogglePredictionMarkets?: () => void;
     onToggleGrokImagine?: () => void;
+    onToggleLatestNews?: () => void;
 }
 
 export default function SidePanel({
@@ -94,10 +105,12 @@ export default function SidePanel({
     showGrokRadio = false,
     showPredictionMarkets = false,
     showGrokImagine = false,
+    showLatestNews = false,
     onToggleGrokipedia,
     onToggleGrokRadio,
     onTogglePredictionMarkets,
     onToggleGrokImagine,
+    onToggleLatestNews,
 }: SidePanelProps) {
     const [hoveredIndex, setHoveredIndex] = useState<number | null>(null);
 
@@ -133,6 +146,13 @@ export default function SidePanel({
             isActive: hasCity && showGrokImagine,
             activeColor: 'cyan'
         },
+        {
+            icon: LatestNewsIcon,
+            label: 'Latest News',
+            onClick: hasCity ? onToggleLatestNews : undefined,
+            isActive: hasCity && showLatestNews,
+            activeColor: 'orange'
+        },
         { icon: StarlinkIcon, label: 'Starlink' },
     ];
 
@@ -154,12 +174,14 @@ export default function SidePanel({
                 blue: 'rgba(96, 165, 250, 0.3)',
                 purple: 'rgba(168, 85, 247, 0.3)',
                 cyan: 'rgba(34, 211, 238, 0.3)',
+                orange: 'rgba(251, 146, 60, 0.3)',
             };
             const glowMap: Record<string, string> = {
                 emerald: '0 0 12px rgba(52, 211, 153, 0.5)',
                 blue: '0 0 12px rgba(96, 165, 250, 0.5)',
                 purple: '0 0 12px rgba(168, 85, 247, 0.5)',
                 cyan: '0 0 12px rgba(34, 211, 238, 0.5)',
+                orange: '0 0 12px rgba(251, 146, 60, 0.5)',
             };
             return {
                 background: colorMap[item.activeColor || 'blue'],

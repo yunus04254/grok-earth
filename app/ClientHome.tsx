@@ -11,6 +11,7 @@ import Grokipedia from './components/Grokipedia';
 import GrokRadio from './components/GrokRadio';
 import PredictionMarkets from './components/PredictionMarkets';
 import GrokImagine from './components/GrokImagine';
+import LatestNews from './components/LatestNews';
 import OverviewCard, { OverviewCardData } from './components/OverviewCard';
 import GrokEarthLogo from './assets/GrokEarth.png';
 import { GEInput } from '@/components/GEInput';
@@ -30,6 +31,7 @@ export default function ClientHome({ apiKey }: ClientHomeProps) {
   const [showGrokRadio, setShowGrokRadio] = useState(true);
   const [showPredictionMarkets, setShowPredictionMarkets] = useState(true);
   const [showGrokImagine, setShowGrokImagine] = useState(true);
+  const [showLatestNews, setShowLatestNews] = useState(true);
   const [showOverviewCard, setShowOverviewCard] = useState(true);
   
   // OverviewCard state
@@ -76,6 +78,7 @@ export default function ClientHome({ apiKey }: ClientHomeProps) {
       setShowGrokRadio(true);
       setShowPredictionMarkets(true);
       setShowGrokImagine(true);
+      setShowLatestNews(true);
       setShowOverviewCard(true);
       // Fetch overview card data for the selected hotspot
       fetchOverviewCard(hotspot.name);
@@ -90,6 +93,7 @@ export default function ClientHome({ apiKey }: ClientHomeProps) {
     setShowGrokRadio(true);
     setShowPredictionMarkets(true);
     setShowGrokImagine(true);
+    setShowLatestNews(true);
     setShowOverviewCard(true);
     setOverviewCardData(null);
   };
@@ -159,6 +163,7 @@ export default function ClientHome({ apiKey }: ClientHomeProps) {
       setShowGrokRadio(true);
       setShowPredictionMarkets(true);
       setShowGrokImagine(true);
+      setShowLatestNews(true);
 
       // Geocode the location to get coordinates
       const coordinates = await geocodeLocation(locationName);
@@ -193,10 +198,12 @@ export default function ClientHome({ apiKey }: ClientHomeProps) {
         showGrokRadio={showGrokRadio}
         showPredictionMarkets={showPredictionMarkets}
         showGrokImagine={showGrokImagine}
+        showLatestNews={showLatestNews}
         onToggleGrokipedia={() => setShowGrokipedia(!showGrokipedia)}
         onToggleGrokRadio={() => setShowGrokRadio(!showGrokRadio)}
         onTogglePredictionMarkets={() => setShowPredictionMarkets(!showPredictionMarkets)}
         onToggleGrokImagine={() => setShowGrokImagine(!showGrokImagine)}
+        onToggleLatestNews={() => setShowLatestNews(!showLatestNews)}
       />
       <MarkerKey />
 
@@ -251,6 +258,17 @@ export default function ClientHome({ apiKey }: ClientHomeProps) {
             key={`imagine-${selectedCity}`}
             city={selectedCity}
             onClose={() => setShowGrokImagine(false)}
+          />
+        )}
+      </AnimatePresence>
+
+      {/* Latest News - opens when a marker is clicked */}
+      <AnimatePresence>
+        {selectedCity && showLatestNews && (
+          <LatestNews
+            key={`news-${selectedCity}`}
+            city={selectedCity}
+            onClose={() => setShowLatestNews(false)}
           />
         )}
       </AnimatePresence>
