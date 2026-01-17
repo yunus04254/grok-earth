@@ -28,6 +28,7 @@ export default function Sandbox() {
             live={true}
             onClose={() => console.log("Close clicked")}
             onExpand={() => console.log("Expand clicked")}
+            region="China"
           >
             <div className="space-y-4">
               <div>
@@ -45,6 +46,7 @@ export default function Sandbox() {
           <GECard
             icon={<BookOpen className="h-6 w-6" />}
             title="Grokipedia"
+            region="New York"
           >
             <p className="text-base text-[#9ca3af]">
               Historical overview and verified information about the region.
@@ -56,6 +58,7 @@ export default function Sandbox() {
             icon={<Headphones className="h-6 w-6" />}
             title="AI Podcast"
             live={true}
+            region="London"
           >
             <div className="space-y-2">
               <p className="text-base font-medium text-[#e5e7eb]">
