@@ -146,6 +146,57 @@ body {
   animation-delay: 0s;
 }
 
+/* Hide scrollbar but keep scrolling functionality */
+.ge-card,
+.ge-card *,
+.ge-card-content,
+.ge-card-content * {
+  scrollbar-width: none !important; /* Firefox */
+  -ms-overflow-style: none !important; /* IE and Edge */
+}
+
+.ge-card::-webkit-scrollbar,
+.ge-card *::-webkit-scrollbar,
+.ge-card-content::-webkit-scrollbar,
+.ge-card-content *::-webkit-scrollbar {
+  display: none !important; /* Chrome, Safari, Opera */
+  width: 0 !important;
+  height: 0 !important;
+  background: transparent !important;
+  -webkit-appearance: none !important;
+}
+
+/* Target scrollbar track and thumb */
+.ge-card::-webkit-scrollbar-track,
+.ge-card *::-webkit-scrollbar-track,
+.ge-card-content::-webkit-scrollbar-track,
+.ge-card-content *::-webkit-scrollbar-track {
+  display: none !important;
+  background: transparent !important;
+}
+
+.ge-card::-webkit-scrollbar-thumb,
+.ge-card *::-webkit-scrollbar-thumb,
+.ge-card-content::-webkit-scrollbar-thumb,
+.ge-card-content *::-webkit-scrollbar-thumb {
+  display: none !important;
+  background: transparent !important;
+}
+
+/* Also target any nested scrollable elements */
+.ge-card [style*="overflow"],
+.ge-card-content [style*="overflow"] {
+  scrollbar-width: none !important;
+  -ms-overflow-style: none !important;
+}
+
+.ge-card [style*="overflow"]::-webkit-scrollbar,
+.ge-card-content [style*="overflow"]::-webkit-scrollbar {
+  display: none !important;
+  width: 0 !important;
+  height: 0 !important;
+}
+
 /* Hide Mapbox attribution for cleaner UI */
 .mapboxgl-ctrl-attrib,
 .mapboxgl-ctrl-logo {

@@ -12,10 +12,17 @@ export interface GECardProps extends React.HTMLAttributes<HTMLDivElement> {
   live?: boolean;
   onClose?: () => void;
   onExpand?: () => void;
+  maxHeight?: string | number;
 }
 
 const GECard = React.forwardRef<HTMLDivElement, GECardProps>(
-  ({ className, children, icon, title, live, onClose, onExpand, ...props }, ref) => {
+  ({ className, children, icon, title, live, onClose, onExpand, maxHeight, ...props }, ref) => {
+    const maxHeightStyle = maxHeight 
+      ? typeof maxHeight === 'number' 
+        ? { maxHeight: `${maxHeight}px` }
+        : { maxHeight }
+      : undefined;
+
     return (
       <Card
         ref={ref}
@@ -32,13 +39,21 @@ const GECard = React.forwardRef<HTMLDivElement, GECardProps>(
           // Subtle hover effect for interactivity
           "transition-all duration-200",
           "relative",
+          // Hide scrollbar class
+          "ge-card",
+          // Flexbox layout when maxHeight is set
+          maxHeight && "flex flex-col",
           className
         )}
+        style={{ ...maxHeightStyle, ...props.style }}
         {...props}
       >
         {/* Top Section: Title Container */}
         {(icon || title || live) && (
-          <div className="flex items-center justify-between w-full px-6 pt-6 pb-4 border-b border-[#2a2f3a]/40">
+          <div className={cn(
+            "flex items-center justify-between w-full px-6 pt-6 pb-4 border-b border-[#2a2f3a]/40",
+            maxHeight && "flex-shrink-0"
+          )}>
             {/* Left side: Icon + Title */}
             <div className="flex items-center gap-3">
               {icon && (
@@ -68,9 +83,14 @@ const GECard = React.forwardRef<HTMLDivElement, GECardProps>(
 
         {/* Body content - flexible and lenient */}
         {children && (
-          <div className={cn(
-            (icon || title || live) ? "px-6 pt-4" : "px-6 pt-6"
-          )}>
+          <div 
+            className={cn(
+              (icon || title || live) ? "px-6 pt-4" : "px-6 pt-6",
+              "ge-card-content",
+              // Make content scrollable when maxHeight is set
+              maxHeight && "overflow-y-auto flex-1 min-h-0"
+            )}
+          >
             {children}
           </div>
         )}
@@ -78,7 +98,8 @@ const GECard = React.forwardRef<HTMLDivElement, GECardProps>(
         {/* Control Icons Tool Tray - Bottom, aligned with card content */}
         <div className={cn(
           "px-6 pb-6 flex items-center justify-end gap-2",
-          children ? "pt-4" : (icon || title || live) ? "pt-4" : "pt-6"
+          children ? "pt-4" : (icon || title || live) ? "pt-4" : "pt-6",
+          maxHeight && "flex-shrink-0"
         )}>
           {/* Move/Drag Indicator */}
           <div className="flex items-center justify-center w-9 h-9 cursor-move group">

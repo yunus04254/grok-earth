@@ -83,6 +83,7 @@ export default function Grokipedia({ onClose, initialCity = '' }: GrokipediaProp
           title="Grokipedia"
           live={isLoading}
           onClose={onClose}
+          maxHeight={600}
         >
           <div className="space-y-6">
             {/* Search Form */}
