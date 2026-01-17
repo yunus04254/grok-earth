@@ -68,9 +68,10 @@ interface IconItem {
 interface SidePanelProps {
     onGrokipediaClick?: () => void;
     onGrokRadioClick?: () => void;
+    onPredictionMarketsClick?: () => void;
 }
 
-export default function SidePanel({ onGrokipediaClick, onGrokRadioClick }: SidePanelProps) {
+export default function SidePanel({ onGrokipediaClick, onGrokRadioClick, onPredictionMarketsClick }: SidePanelProps) {
     const [hoveredIndex, setHoveredIndex] = useState<number | null>(null);
     
     const ICON_ITEMS: IconItem[] = [
@@ -79,7 +80,7 @@ export default function SidePanel({ onGrokipediaClick, onGrokRadioClick }: SideP
         { icon: PodcastIcon, label: 'Podcast' },
         { icon: RadioIcon, label: 'Grok Radio', onClick: onGrokRadioClick },
         { icon: GrokipediaIcon, label: 'Grokipedia', onClick: onGrokipediaClick },
-        { icon: PredictionMarketsIcon, label: 'Prediction Markets' },
+        { icon: PredictionMarketsIcon, label: 'Prediction Markets', onClick: onPredictionMarketsClick },
         { icon: StarlinkIcon, label: 'Starlink' },
     ];
 
