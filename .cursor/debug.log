@@ -1,0 +1,3 @@
+{"location":"Globe.tsx:197","message":"fetchHotspots useEffect triggered","data":{"timestamp":1768674968042},"timestamp":1768674968042,"sessionId":"debug-session","runId":"run1","hypothesisId":"D"}
+{"location":"ClientHome.tsx:24","message":"ClientHome component mounted","data":{"timestamp":1768674968063,"apiKeyPresent":true},"timestamp":1768674968063,"sessionId":"debug-session","runId":"run1","hypothesisId":"A"}
+{"location":"Globe.tsx:202","message":"Hotspots data received","data":{"redCount":5,"blueCount":15,"source":"fallback"},"timestamp":1768674969312,"sessionId":"debug-session","runId":"run1","hypothesisId":"D"}

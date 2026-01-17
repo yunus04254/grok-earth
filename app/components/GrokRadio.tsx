@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useRef, useCallback, useEffect } from 'react';
+import React, { useState, useRef, useCallback, useEffect, useMemo } from 'react';
 import { GECard } from '@/components/GECard';
 import { Radio, Play, Square, Volume2, VolumeX, Loader2, Phone, PhoneOff, MapPin } from 'lucide-react';
 import { motion } from 'framer-motion';
@@ -420,6 +420,14 @@ export default function GrokRadio({ onClose, city }: GrokRadioProps) {
     };
   }, [stopMicrophone, stopAllAudio]);
 
+
+  const [randomNumber] = useState(() => {
+    if (typeof window !== 'undefined') {
+      return Math.random();
+    }
+    return 0;
+  });
+
   const isActive = mode !== 'idle';
 
   return (
@@ -538,7 +546,7 @@ export default function GrokRadio({ onClose, city }: GrokRadioProps) {
                             ? (isUserSpeaking ? 'bg-gradient-to-t from-red-600 to-red-400' : 'bg-gradient-to-t from-blue-600 to-blue-400')
                             : 'bg-gradient-to-t from-emerald-600 to-emerald-400'
                         }`}
-                        style={{ height: `${20 + Math.random() * 80}%` }}
+                        style={{ height: `${20 + randomNumber * 80}%` }}
                       />
                     ))
                   ) : (
