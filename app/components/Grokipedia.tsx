@@ -20,12 +20,12 @@ export default function Grokipedia({ onClose, city }: GrokipediaProps) {
   const [messages, setMessages] = useState<Message[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const hasQueried = useRef(false);
+  const queriedCity = useRef<string | null>(null);
 
-  // Auto-query when component mounts with a city
+  // Auto-query when component mounts with a city (only if city changed)
   useEffect(() => {
-    if (city && !hasQueried.current) {
-      hasQueried.current = true;
+    if (city && city !== queriedCity.current) {
+      queriedCity.current = city;
       queryCity(city);
     }
   }, [city]);

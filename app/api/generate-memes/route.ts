@@ -43,7 +43,6 @@ Return JSON object (NO markdown, ONLY valid JSON):
 
 Make prompt HILARIOUS, specific to ${city} (culture, food, landmarks, stereotypes), use viral formats, include text overlays.`,
       temperature: 0.7, // Lower temperature for faster generation
-      maxTokens: 400, // Reduced tokens for faster response
     });
 
     // Parse meme prompt

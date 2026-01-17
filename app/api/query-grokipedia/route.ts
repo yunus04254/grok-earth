@@ -52,7 +52,6 @@ Keep responses factual, neutral, and encyclopedic.
       system: systemPrompt,
       prompt: `Provide a historical overview and recent events for ${city}.`,
       temperature: 0.3,
-      maxTokens: 1500,
     });
 
     // Return as a text stream response

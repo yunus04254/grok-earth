@@ -292,7 +292,6 @@ Include 5-10 search terms and any event slugs you find.`,
         system: `You are a prediction market analyst. Provide a brief 2-3 sentence summary about what these prediction markets reveal about the current situation related to the specified location. Focus on the most significant predictions and their implications. Be concise and insightful.`,
         prompt: `Location: ${location}${searchData.country ? ` (${searchData.country})` : ''}\n\nActive prediction markets:\n${marketsContext}\n\nProvide a brief summary of what these markets indicate about this region.`,
         temperature: 0.5,
-        maxTokens: 250,
       });
 
       aiSummary = summaryResult.text;

@@ -24,12 +24,12 @@ export default function GrokImagine({ onClose, city }: GrokImagineProps) {
   const [error, setError] = useState<string | null>(null);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [expandedImage, setExpandedImage] = useState<string | null>(null);
-  const hasGenerated = useRef(false);
+  const generatedCity = useRef<string | null>(null);
 
-  // Auto-generate memes when component mounts with a city
+  // Auto-generate memes when component mounts with a city (only if city changed)
   useEffect(() => {
-    if (city && !hasGenerated.current) {
-      hasGenerated.current = true;
+    if (city && city !== generatedCity.current) {
+      generatedCity.current = city;
       generateMemes(city);
     }
   }, [city]);
@@ -79,7 +79,7 @@ export default function GrokImagine({ onClose, city }: GrokImagineProps) {
   };
 
   const handleRegenerate = () => {
-    hasGenerated.current = false;
+    generatedCity.current = null; // Reset to allow regeneration
     generateMemes(city);
   };
 

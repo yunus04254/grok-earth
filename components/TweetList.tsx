@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { Heart, Repeat2 } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { motion, AnimatePresence } from "framer-motion";
@@ -98,24 +98,32 @@ export const TweetList: React.FC<TweetListProps> = ({ region, maxTweets = 3, aut
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [offset, setOffset] = useState(0);
+  const queriedRegion = useRef<string | null>(null);
 
   useEffect(() => {
-    const fetchTweets = async () => {
-      try {
-        const response = await fetch(`/api/fetch-tweets?location=${encodeURIComponent(region)}`);
-        if (!response.ok) {
-          throw new Error('Failed to fetch tweets');
+    // Only fetch if region actually changed
+    if (region && region !== queriedRegion.current) {
+      queriedRegion.current = region;
+      setLoading(true);
+      setError(null);
+      
+      const fetchTweets = async () => {
+        try {
+          const response = await fetch(`/api/fetch-tweets?location=${encodeURIComponent(region)}`);
+          if (!response.ok) {
+            throw new Error('Failed to fetch tweets');
+          }
+          const data = await response.json();
+          setTweets(data.tweets || []);
+        } catch (err) {
+          setError(err instanceof Error ? err.message : 'Unknown error');
+        } finally {
+          setLoading(false);
         }
-        const data = await response.json();
-        setTweets(data.tweets || []);
-      } catch (err) {
-        setError(err instanceof Error ? err.message : 'Unknown error');
-      } finally {
-        setLoading(false);
-      }
-    };
+      };
 
-    fetchTweets();
+      fetchTweets();
+    }
   }, [region]);
 
   // Auto-rotate tweets every 3 seconds
