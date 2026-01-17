@@ -89,9 +89,11 @@ TweetCard.displayName = "TweetCard";
 
 interface TweetListProps {
   region: string;
+  maxTweets?: number;
+  autoRotate?: boolean;
 }
 
-export const TweetList: React.FC<TweetListProps> = ({ region }) => {
+export const TweetList: React.FC<TweetListProps> = ({ region, maxTweets = 3, autoRotate = true }) => {
   const [tweets, setTweets] = useState<Tweet[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -118,14 +120,14 @@ export const TweetList: React.FC<TweetListProps> = ({ region }) => {
 
   // Auto-rotate tweets every 3 seconds
   useEffect(() => {
-    if (tweets.length <= 3) return; // Don't rotate if we have 3 or fewer tweets
+    if (!autoRotate || tweets.length <= maxTweets) return; // Don't rotate if disabled or not enough tweets
 
     const interval = setInterval(() => {
       setOffset((prev) => (prev + 1) % tweets.length);
     }, 3000);
 
     return () => clearInterval(interval);
-  }, [tweets.length]);
+  }, [tweets.length, autoRotate, maxTweets]);
 
   if (loading) {
     return (
@@ -149,7 +151,7 @@ export const TweetList: React.FC<TweetListProps> = ({ region }) => {
     <div className="relative overflow-hidden">
       <div className="space-y-2">
         <AnimatePresence initial={false} mode="popLayout">
-          {Array.from({ length: 3 }).map((_, i) => {
+          {Array.from({ length: maxTweets }).map((_, i) => {
             const tweetIndex = (offset + i) % tweets.length;
             const tweet = tweets[tweetIndex];
             if (!tweet) return null;
