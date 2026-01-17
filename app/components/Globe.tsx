@@ -1,111 +1,137 @@
 'use client';
 
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState, useCallback } from 'react';
 import mapboxgl from 'mapbox-gl';
+import type { Hotspot, HotspotsResponse } from '@/app/lib/types';
+import { MARKER_STYLES } from '@/app/lib/types';
 
 interface GlobeProps {
   apiKey: string;
 }
 
-// City marker locations (with pulsing dots)
-const CITY_MARKERS = [
-  // Original 5
-  { name: 'London', lng: -0.1276, lat: 51.5074, intensity: 0.9 },
-  { name: 'New York', lng: -74.006, lat: 40.7128, intensity: 1.0 },
-  { name: 'Tokyo', lng: 139.6917, lat: 35.6895, intensity: 0.95 },
-  { name: 'Lagos', lng: 3.3792, lat: 6.5244, intensity: 0.7 },
-  { name: 'Sydney', lng: 151.2093, lat: -33.8688, intensity: 0.8 },
-  // 5 new markers - capitals further away
-  { name: 'Pau', lng: -0.3708, lat: 43.2951, intensity: 0.85 }, // France
-  { name: 'Buenos Aires', lng: -58.3816, lat: -34.6037, intensity: 0.75 }, // Argentina
-  { name: 'Cairo', lng: 31.2357, lat: 30.0444, intensity: 0.8 }, // Egypt
-  { name: 'Moscow', lng: 37.6173, lat: 55.7558, intensity: 0.85 }, // Russia
-  { name: 'Wellington', lng: 174.7762, lat: -41.2865, intensity: 0.7 }, // New Zealand
-];
+// Fallback data while API loads or fails
+const FALLBACK_HOTSPOTS: HotspotsResponse = {
+  redHotspots: [
+    { name: 'New York', lat: 40.7128, lng: -74.006, volume: 100000, type: 'red' },
+    { name: 'London', lat: 51.5074, lng: -0.1276, volume: 95000, type: 'red' },
+    { name: 'Tokyo', lat: 35.6895, lng: 139.6917, volume: 90000, type: 'red' },
+    { name: 'São Paulo', lat: -23.5505, lng: -46.6333, volume: 85000, type: 'red' },
+    { name: 'Mumbai', lat: 19.076, lng: 72.8777, volume: 80000, type: 'red' },
+  ],
+  blueZones: [
+    { name: 'Paris', lat: 48.8566, lng: 2.3522, volume: 0.8, type: 'blue' },
+    { name: 'Seoul', lat: 37.5665, lng: 126.978, volume: 0.75, type: 'blue' },
+    { name: 'Jakarta', lat: -6.2088, lng: 106.8456, volume: 0.7, type: 'blue' },
+    { name: 'Mexico City', lat: 19.4326, lng: -99.1332, volume: 0.65, type: 'blue' },
+    { name: 'Cairo', lat: 30.0444, lng: 31.2357, volume: 0.6, type: 'blue' },
+    { name: 'Berlin', lat: 52.52, lng: 13.405, volume: 0.55, type: 'blue' },
+    { name: 'Delhi', lat: 28.6139, lng: 77.209, volume: 0.5, type: 'blue' },
+    { name: 'Lagos', lat: 6.5244, lng: 3.3792, volume: 0.45, type: 'blue' },
+    { name: 'Toronto', lat: 43.6532, lng: -79.3832, volume: 0.42, type: 'blue' },
+    { name: 'Singapore', lat: 1.3521, lng: 103.8198, volume: 0.4, type: 'blue' },
+  ],
+  lastUpdated: new Date().toISOString(),
+  source: 'fallback',
+};
 
-// Heatmap-only cities (more orange, no markers)
-const HEATMAP_ONLY_CITIES = [
-  { lng: -99.1332, lat: 19.4326, intensity: 0.95 }, // Mexico City
-  { lng: 106.8456, lat: -6.2088, intensity: 0.9 }, // Jakarta
-  { lng: 126.978, lat: 37.5665, intensity: 0.92 }, // Seoul
-  { lng: 13.405, lat: 52.52, intensity: 0.88 }, // Berlin
-  { lng: 72.8777, lat: 19.076, intensity: 0.9 }, // Mumbai
-];
+// Generate heatmap data from blue zones (emerging trends)
+function generateHeatmapFeatures(blueZones: Hotspot[]) {
+  const features: any[] = [];
 
-// Generate heatmap data with trending areas
-const generateHeatmapData = () => {
-  const features = [];
+  blueZones.forEach(zone => {
+    // Normalize volume to 0-1 range for intensity
+    const maxVolume = Math.max(...blueZones.map(z => z.volume));
+    const intensity = zone.volume / maxVolume;
 
-  // Add city centers with high intensity (for marker cities)
-  CITY_MARKERS.forEach(city => {
     features.push({
       type: 'Feature',
-      geometry: { type: 'Point', coordinates: [city.lng, city.lat] },
-      properties: { intensity: city.intensity }
+      geometry: { type: 'Point', coordinates: [zone.lng, zone.lat] },
+      properties: { intensity }
     });
 
     // Add surrounding points for spread effect
-    for (let i = 0; i < 8; i++) {
-      const angle = (i / 8) * Math.PI * 2;
+    for (let i = 0; i < 6; i++) {
+      const angle = (i / 6) * Math.PI * 2;
       const distance = 2 + Math.random() * 3;
       features.push({
         type: 'Feature',
         geometry: {
           type: 'Point',
           coordinates: [
-            city.lng + Math.cos(angle) * distance,
-            city.lat + Math.sin(angle) * distance
+            zone.lng + Math.cos(angle) * distance,
+            zone.lat + Math.sin(angle) * distance
           ]
         },
-        properties: { intensity: city.intensity * (0.3 + Math.random() * 0.3) }
-      });
-    }
-  });
-
-  // Add heatmap-only cities (more orange - higher intensity)
-  HEATMAP_ONLY_CITIES.forEach(spot => {
-    // Higher intensity for more orange/red appearance
-    features.push({
-      type: 'Feature',
-      geometry: { type: 'Point', coordinates: [spot.lng, spot.lat] },
-      properties: { intensity: spot.intensity }
-    });
-
-    // Add surrounding spread for these cities too
-    for (let i = 0; i < 6; i++) {
-      const angle = (i / 6) * Math.PI * 2;
-      const distance = 1.5 + Math.random() * 2;
-      features.push({
-        type: 'Feature',
-        geometry: {
-          type: 'Point',
-          coordinates: [
-            spot.lng + Math.cos(angle) * distance,
-            spot.lat + Math.sin(angle) * distance
-          ]
-        },
-        properties: { intensity: spot.intensity * (0.5 + Math.random() * 0.3) }
+        properties: { intensity: intensity * (0.4 + Math.random() * 0.3) }
       });
     }
   });
 
   return { type: 'FeatureCollection', features };
-};
-
+}
 
 export default function Globe({ apiKey }: GlobeProps) {
   const mapContainer = useRef<HTMLDivElement>(null);
   const map = useRef<mapboxgl.Map | null>(null);
   const markersRef = useRef<mapboxgl.Marker[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [hotspots, setHotspots] = useState<HotspotsResponse>(FALLBACK_HOTSPOTS);
 
+  // Fetch hotspots from API
+  useEffect(() => {
+    async function fetchHotspots() {
+      try {
+        const response = await fetch('/api/trends');
+        if (response.ok) {
+          const data: HotspotsResponse = await response.json();
+          setHotspots(data);
+        }
+      } catch (error) {
+        console.warn('Failed to fetch hotspots, using fallback:', error);
+      }
+    }
+    fetchHotspots();
+  }, []);
+
+  // Create consistent pulsing marker element (RED style)
+  const createRedMarker = useCallback((hotspot: Hotspot) => {
+    const el = document.createElement('div');
+    el.className = 'pulse-marker';
+    el.innerHTML = `
+      <div class="pulse-dot" style="
+        background: ${MARKER_STYLES.red.dotGradient};
+        box-shadow: 0 0 8px ${MARKER_STYLES.red.glowColor};
+      "></div>
+      <div class="pulse-ring" style="
+        border-color: ${MARKER_STYLES.red.ringColor};
+      "></div>
+    `;
+    el.title = `${hotspot.name}${hotspot.topTrend ? ` - ${hotspot.topTrend}` : ''}`;
+    el.style.cursor = 'pointer';
+
+    el.addEventListener('click', () => {
+      if (map.current) {
+        map.current.flyTo({
+          center: [hotspot.lng, hotspot.lat],
+          zoom: 8,
+          pitch: 45,
+          duration: 2000,
+          essential: true
+        });
+      }
+    });
+
+    return el;
+  }, []);
+
+  // Initialize map and add layers
   useEffect(() => {
     if (!apiKey) {
       console.error('Mapbox API key is required');
       return;
     }
 
-    if (map.current) return; // Initialize map only once
+    if (map.current) return;
 
     mapboxgl.accessToken = apiKey;
 
@@ -122,70 +148,30 @@ export default function Globe({ apiKey }: GlobeProps) {
       antialias: true,
     });
 
-    // Add navigation controls
     map.current.addControl(new mapboxgl.NavigationControl(), 'top-right');
 
-    // Generate random satellite positions as GeoJSON with orbital distribution and altitude
+    // Satellite generation
     const generateSatelliteGeoJSON = (count: number) => {
       const features = [];
       for (let i = 0; i < count; i++) {
         const lat = Math.asin((Math.random() * 2 - 1) * 0.9) * (180 / Math.PI);
         const lng = (Math.random() * 360) - 180;
-
-        // Altitude in meters (Starlink orbit - 340km to 550km)
         const altitude = 340000 + Math.random() * 210000;
-
         features.push({
           type: 'Feature',
-          geometry: {
-            type: 'Point',
-            coordinates: [lng, lat],
-          },
-          properties: {
-            id: `satellite-${i}`,
-            altitude: altitude,
-            rotation: Math.random() * 360,
-          },
+          geometry: { type: 'Point', coordinates: [lng, lat] },
+          properties: { id: `satellite-${i}`, altitude, rotation: Math.random() * 360 },
         });
       }
       return { type: 'FeatureCollection', features };
     };
 
-    // Create pulsing marker elements
-    const createPulsingMarker = (city: typeof CITY_MARKERS[0]) => {
-      const el = document.createElement('div');
-      el.className = 'pulse-marker';
-      el.innerHTML = `
-        <div class="pulse-dot"></div>
-        <div class="pulse-ring"></div>
-      `;
-      el.title = city.name;
-      el.style.cursor = 'pointer';
-
-      // Click handler for fly-to animation
-      el.addEventListener('click', () => {
-        if (map.current) {
-          map.current.flyTo({
-            center: [city.lng, city.lat],
-            zoom: 8,
-            pitch: 45,
-            duration: 2000,
-            essential: true
-          });
-        }
-      });
-
-      return el;
-    };
-
     map.current.on('style.load', () => {
       if (!map.current) return;
 
-      // Add a 3D model source (using satellite GLB model)
       // @ts-ignore
       map.current.addModel('satellite-model', '/satellite.glb');
 
-      // Setup atmospheric lighting for 3D models
       if (!map.current.getLayer('sky')) {
         map.current.addLayer({
           id: 'sky',
@@ -198,22 +184,18 @@ export default function Globe({ apiKey }: GlobeProps) {
         });
       }
 
-      // Add satellite source
       const satelliteData = generateSatelliteGeoJSON(42);
       map.current.addSource('satellites', {
         type: 'geojson',
         data: satelliteData as any,
       });
 
-      // Add model layer with proper altitude
       // @ts-ignore
       map.current.addLayer({
         id: 'satellites-model',
         type: 'model',
         source: 'satellites',
-        layout: {
-          'model-id': 'satellite-model',
-        },
+        layout: { 'model-id': 'satellite-model' },
         paint: {
           'model-scale': [100000, 100000, 100000],
           'model-rotation': [0, 0, 0],
@@ -225,68 +207,56 @@ export default function Globe({ apiKey }: GlobeProps) {
         },
       });
 
-      // Add heatmap source
+      // Add heatmap for BLUE zones (emerging trends)
       map.current.addSource('heatmap-data', {
         type: 'geojson',
-        data: generateHeatmapData() as any,
+        data: generateHeatmapFeatures(hotspots.blueZones) as any,
       });
 
-      // Add heatmap layer - visible at low zoom, fades at zoom 3+
+      // Blue heatmap layer for emerging trends
       map.current.addLayer({
         id: 'trending-heatmap',
         type: 'heatmap',
         source: 'heatmap-data',
         paint: {
-          // Increase weight based on intensity property
           'heatmap-weight': ['get', 'intensity'],
-          // Increase intensity as zoom decreases
           'heatmap-intensity': [
             'interpolate', ['linear'], ['zoom'],
-            0, 1,
-            3, 0.5,
-            5, 0
+            0, 1, 3, 0.5, 5, 0
           ],
-          // Color gradient from blue to red
+          // Blue gradient for emerging trends
           'heatmap-color': [
             'interpolate', ['linear'], ['heatmap-density'],
-            0, 'rgba(0, 0, 255, 0)',
-            0.2, 'rgba(0, 100, 255, 0.4)',
-            0.4, 'rgba(0, 200, 255, 0.6)',
-            0.6, 'rgba(255, 255, 0, 0.7)',
-            0.8, 'rgba(255, 150, 0, 0.8)',
-            1, 'rgba(255, 50, 50, 0.9)'
+            0, 'rgba(0, 100, 255, 0)',
+            0.2, 'rgba(0, 150, 255, 0.4)',
+            0.4, 'rgba(50, 200, 255, 0.6)',
+            0.6, 'rgba(100, 220, 255, 0.7)',
+            0.8, 'rgba(150, 240, 255, 0.8)',
+            1, 'rgba(200, 255, 255, 0.9)'
           ],
-          // Radius increases with zoom
           'heatmap-radius': [
             'interpolate', ['linear'], ['zoom'],
-            0, 30,
-            3, 20,
-            5, 10
+            0, 30, 3, 20, 5, 10
           ],
-          // Opacity fades out at zoom level 3+
           'heatmap-opacity': [
             'interpolate', ['linear'], ['zoom'],
-            0, 0.7,
-            2, 0.5,
-            3, 0.2,
-            4, 0
+            0, 0.7, 2, 0.5, 3, 0.2, 4, 0
           ]
         }
-      }, 'satellites-model'); // Place below satellites
+      }, 'satellites-model');
 
-      // Add pulsing markers for each city
-      CITY_MARKERS.forEach(city => {
+      // Add RED markers for high-volume hotspots
+      hotspots.redHotspots.forEach(hotspot => {
         const marker = new mapboxgl.Marker({
-          element: createPulsingMarker(city),
+          element: createRedMarker(hotspot),
           anchor: 'center'
         })
-          .setLngLat([city.lng, city.lat])
+          .setLngLat([hotspot.lng, hotspot.lat])
           .addTo(map.current!);
 
         markersRef.current.push(marker);
       });
 
-      // Set fog/atmosphere
       map.current.setFog({
         color: 'rgb(10, 10, 10)',
         'high-color': 'rgb(30, 30, 40)',
@@ -298,9 +268,9 @@ export default function Globe({ apiKey }: GlobeProps) {
       setIsLoading(false);
     });
 
-    // Rotation disabled by default - user can still interact manually
+    // Rotation disabled
     let userInteracting = false;
-    const spinEnabled = false; // Disabled rotation
+    const spinEnabled = false;
 
     const spinGlobe = () => {
       if (!map.current || userInteracting || !spinEnabled) return;
@@ -319,13 +289,10 @@ export default function Globe({ apiKey }: GlobeProps) {
 
     return () => {
       clearInterval(spinInterval);
-
-      // Remove markers
       markersRef.current.forEach(marker => marker.remove());
       markersRef.current = [];
 
       if (map.current) {
-        // Remove layers and sources
         if (map.current.getLayer('trending-heatmap')) {
           map.current.removeLayer('trending-heatmap');
         }
@@ -347,7 +314,7 @@ export default function Globe({ apiKey }: GlobeProps) {
       map.current?.remove();
       map.current = null;
     };
-  }, [apiKey]);
+  }, [apiKey, hotspots, createRedMarker]);
 
   return (
     <div className="relative w-full h-screen">
