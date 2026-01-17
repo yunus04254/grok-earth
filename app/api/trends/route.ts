@@ -4,7 +4,7 @@ import { WOEID_LOCATIONS, getLocationByWoeid } from '@/app/lib/woeid-mapping';
 // Configuration
 const K_RED_HOTSPOTS = 15;  // Top K locations for red markers
 const M_BLUE_ZONES = 15;   // Next M locations for blue heatmap
-const CACHE_TTL_MS = 2 * 60 * 1000; // 2 minutes
+const CACHE_TTL_MS = 5 * 60 * 1000; // 2 minutes
 
 // In-memory cache
 let cachedData: {

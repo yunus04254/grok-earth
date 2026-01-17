@@ -7,6 +7,7 @@ import SidePanel from './components/SidePanel';
 import MarkerKey from './components/MarkerKey';
 import Grokipedia from './components/Grokipedia';
 import GrokRadio from './components/GrokRadio';
+import PredictionMarkets from './components/PredictionMarkets';
 import GrokEarthLogo from './assets/GrokEarth.png';
 import { GEInput } from '@/components/GEInput';
 
@@ -17,6 +18,7 @@ interface ClientHomeProps {
 export default function ClientHome({ apiKey }: ClientHomeProps) {
   const [showGrokipedia, setShowGrokipedia] = useState(false);
   const [showGrokRadio, setShowGrokRadio] = useState(false);
+  const [showPredictionMarkets, setShowPredictionMarkets] = useState(false);
 
   return (
     <main className="w-full h-screen relative">
@@ -24,12 +26,16 @@ export default function ClientHome({ apiKey }: ClientHomeProps) {
       <SidePanel 
         onGrokipediaClick={() => setShowGrokipedia(true)} 
         onGrokRadioClick={() => setShowGrokRadio(true)}
+        onPredictionMarketsClick={() => setShowPredictionMarkets(true)}
       />
       {showGrokipedia && (
         <Grokipedia onClose={() => setShowGrokipedia(false)} />
       )}
       {showGrokRadio && (
         <GrokRadio onClose={() => setShowGrokRadio(false)} />
+      )}
+      {showPredictionMarkets && (
+        <PredictionMarkets onClose={() => setShowPredictionMarkets(false)} />
       )}
       {/* Logo in top left */}
       <div className="fixed top-6 left-6 z-20">
