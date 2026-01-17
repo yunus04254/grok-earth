@@ -14,6 +14,8 @@ export interface GEInputProps extends React.ComponentProps<"input"> {
   loop?: boolean;
   loading?: boolean;
   focusRing?: boolean;
+  error?: boolean;
+  errorMessage?: string;
 }
 
 // Custom hook for typing effect
@@ -90,6 +92,8 @@ const GEInput = React.forwardRef<HTMLInputElement, GEInputProps>(
     loop = true,
     loading = false,
     focusRing = false,
+    error = false,
+    errorMessage,
     value,
     onChange,
     onFocus,
@@ -195,7 +199,10 @@ const GEInput = React.forwardRef<HTMLInputElement, GEInputProps>(
             "bg-gradient-to-br from-[#1a1d24]/85 via-[#1f2532]/80 to-[#1a1f2e]/85",
             "backdrop-blur-xl backdrop-saturate-150",
             // Border: more prominent border with subtle glow
-            "border-2 border-[#2a2f3a]/60",
+            // Error state: subtle amber/orange tint on border (not red/fatal)
+            error 
+              ? "border-2 border-amber-500/40" 
+              : "border-2 border-[#2a2f3a]/60",
             // Border radius: more rounded for sleek, modern feel
             "rounded-2xl",
             // Text colors - placeholder-like when auto-typing, normal otherwise
@@ -204,7 +211,10 @@ const GEInput = React.forwardRef<HTMLInputElement, GEInputProps>(
             "cursor-text",
             "placeholder:text-[#9ca3af]",
             // Shadow: enhanced floating card effect with liquid glass feel
-            "shadow-[0_0_0_1px_rgba(255,255,255,0.08),inset_0_1px_0_0_rgba(255,255,255,0.1),0_8px_40px_rgba(0,0,0,0.5),0_4px_16px_rgba(0,0,0,0.3)]",
+            // Error state: subtle amber glow (not harsh red)
+            error
+              ? "shadow-[0_0_0_1px_rgba(255,255,255,0.08),inset_0_1px_0_0_rgba(255,255,255,0.1),0_8px_40px_rgba(245,158,11,0.15),0_4px_16px_rgba(0,0,0,0.3)]"
+              : "shadow-[0_0_0_1px_rgba(255,255,255,0.08),inset_0_1px_0_0_rgba(255,255,255,0.1),0_8px_40px_rgba(0,0,0,0.5),0_4px_16px_rgba(0,0,0,0.3)]",
             // Custom class for animated glow on focus (defined in globals.css) - only apply when focusRing is true
             focusRing && "ge-input",
             // Transition for smooth interactions (but not box-shadow to avoid delay)
@@ -239,6 +249,11 @@ const GEInput = React.forwardRef<HTMLInputElement, GEInputProps>(
                 d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
               />
             </svg>
+          </div>
+        )}
+        {error && errorMessage && (
+          <div className="absolute -bottom-6 left-0 right-0 mt-1">
+            <p className="text-sm text-amber-400/80 px-1">{errorMessage}</p>
           </div>
         )}
       </div>

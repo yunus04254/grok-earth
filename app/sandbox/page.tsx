@@ -4,10 +4,21 @@ import { useState } from "react";
 import { GECard } from "@/components/GECard";
 import { GEInput } from "@/components/GEInput";
 import { GEButton } from "@/components/GEButton";
+import OverviewCard, { OverviewCardData } from "@/app/components/OverviewCard";
 import { Info, BookOpen, Headphones, Download, Send, Trash2, Check } from "lucide-react";
+
+type OverviewCardResponse = OverviewCardData & {
+  error?: boolean;
+  message?: string;
+};
 
 export default function Sandbox() {
   const [isLoading, setIsLoading] = useState(true);
+  const [overviewQuery, setOverviewQuery] = useState("");
+  const [overviewLoading, setOverviewLoading] = useState(false);
+  const [overviewError, setOverviewError] = useState(false);
+  const [overviewErrorMessage, setOverviewErrorMessage] = useState("");
+  const [overviewData, setOverviewData] = useState<OverviewCardResponse | null>(null);
   return (
     <div 
       className="bg-zinc-50 font-sans dark:bg-black"
@@ -24,6 +35,105 @@ export default function Sandbox() {
       <main className="w-full max-w-3xl mx-auto flex flex-col py-16 px-8 sm:px-16 bg-white dark:bg-black">
         
         <div className="w-full space-y-6 pb-8">
+          {/* Overview Card API Test - Standalone Input */}
+          <div className="w-full space-y-4">
+            <form
+              onSubmit={async (e) => {
+                e.preventDefault();
+                if (!overviewQuery.trim() || overviewLoading) return;
+
+                setOverviewLoading(true);
+                setOverviewError(false);
+                setOverviewErrorMessage("");
+                setOverviewData(null);
+
+                try {
+                  const response = await fetch('/api/overview-card', {
+                    method: 'POST',
+                    headers: {
+                      'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ question: overviewQuery }),
+                  });
+
+                  const data: OverviewCardResponse = await response.json();
+
+                  if (data.error) {
+                    setOverviewError(true);
+                    setOverviewErrorMessage(data.message || 'An error occurred');
+                    setOverviewData(null);
+                  } else {
+                    setOverviewError(false);
+                    setOverviewErrorMessage("");
+                    setOverviewData(data);
+                  }
+                } catch (err) {
+                  setOverviewError(true);
+                  setOverviewErrorMessage(err instanceof Error ? err.message : 'Failed to fetch overview data');
+                  setOverviewData(null);
+                } finally {
+                  setOverviewLoading(false);
+                }
+              }}
+              className="space-y-4"
+            >
+              <GEInput
+                value={overviewQuery}
+                onChange={(e) => {
+                  setOverviewQuery(e.target.value);
+                  setOverviewError(false);
+                  setOverviewErrorMessage("");
+                }}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' && !e.shiftKey) {
+                    e.preventDefault();
+                    e.currentTarget.form?.requestSubmit();
+                  }
+                }}
+                placeholder="Show me what's happening in Venezuela"
+                loading={overviewLoading}
+                error={overviewError}
+                errorMessage={overviewErrorMessage}
+                disabled={overviewLoading}
+              />
+              <div className="flex gap-3">
+                <GEButton
+                  type="submit"
+                  disabled={overviewLoading || !overviewQuery.trim()}
+                  variant="default"
+                >
+                  <Send className="h-4 w-4" />
+                  Query Overview
+                </GEButton>
+                <GEButton
+                  type="button"
+                  onClick={() => {
+                    setOverviewQuery("");
+                    setOverviewError(false);
+                    setOverviewErrorMessage("");
+                    setOverviewData(null);
+                  }}
+                  variant="outline"
+                  disabled={overviewLoading}
+                >
+                  Clear
+                </GEButton>
+              </div>
+            </form>
+
+            {/* Render OverviewCard when data is ready */}
+            {overviewData && !overviewData.error && (
+              <OverviewCard 
+                data={overviewData}
+                onClose={() => {
+                  setOverviewData(null);
+                  setOverviewQuery("");
+                }}
+                onExpand={() => console.log("Expand clicked")}
+              />
+            )}
+          </div>
+
           {/* Example with icon, title, LIVE indicator, and control icons */}
           <GECard
             icon={<Info className="h-6 w-6" />}
@@ -79,6 +189,179 @@ export default function Sandbox() {
               <p className="text-base text-[#e5e7eb]">
                 This card has no icon, title, or LIVE indicator - completely flexible content.
               </p>
+            </div>
+          </GECard>
+
+          {/* Overview Card API Test */}
+          <GECard
+            icon={<Info className="h-6 w-6" />}
+            title="Overview Card API Test"
+          >
+            <div className="space-y-4">
+              <form
+                onSubmit={async (e) => {
+                  e.preventDefault();
+                  if (!overviewQuery.trim() || overviewLoading) return;
+
+                  setOverviewLoading(true);
+                  setOverviewError(false);
+                  setOverviewErrorMessage("");
+                  setOverviewData(null);
+
+                  try {
+                    const response = await fetch('/api/overview-card', {
+                      method: 'POST',
+                      headers: {
+                        'Content-Type': 'application/json',
+                      },
+                      body: JSON.stringify({ question: overviewQuery }),
+                    });
+
+                    const data: OverviewCardResponse = await response.json();
+
+                    if (data.error) {
+                      setOverviewError(true);
+                      setOverviewErrorMessage(data.message || 'An error occurred');
+                      setOverviewData(null);
+                    } else {
+                      setOverviewError(false);
+                      setOverviewErrorMessage("");
+                      setOverviewData(data);
+                    }
+                  } catch (err) {
+                    setOverviewError(true);
+                    setOverviewErrorMessage(err instanceof Error ? err.message : 'Failed to fetch overview data');
+                    setOverviewData(null);
+                  } finally {
+                    setOverviewLoading(false);
+                  }
+                }}
+                className="space-y-4"
+              >
+                <GEInput
+                  value={overviewQuery}
+                  onChange={(e) => {
+                    setOverviewQuery(e.target.value);
+                    setOverviewError(false);
+                    setOverviewErrorMessage("");
+                  }}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' && !e.shiftKey) {
+                      e.preventDefault();
+                      e.currentTarget.form?.requestSubmit();
+                    }
+                  }}
+                  placeholder="Show me what's happening in Venezuela"
+                  loading={overviewLoading}
+                  error={overviewError}
+                  errorMessage={overviewErrorMessage}
+                  disabled={overviewLoading}
+                />
+                <div className="flex gap-3">
+                  <GEButton
+                    type="submit"
+                    disabled={overviewLoading || !overviewQuery.trim()}
+                    variant="default"
+                  >
+                    <Send className="h-4 w-4" />
+                    Query Overview
+                  </GEButton>
+                  <GEButton
+                    type="button"
+                    onClick={() => {
+                      setOverviewQuery("");
+                      setOverviewError(false);
+                      setOverviewErrorMessage("");
+                      setOverviewData(null);
+                    }}
+                    variant="outline"
+                    disabled={overviewLoading}
+                  >
+                    Clear
+                  </GEButton>
+                </div>
+              </form>
+
+              {overviewData && !overviewData.error && (
+                <div className="mt-6 p-4 bg-[#1a1d24]/50 rounded-xl border border-[#2a2f3a]/60 space-y-4">
+                  <div className="space-y-3">
+                    <div>
+                      <p className="text-xs text-[#9ca3af] mb-1">Location</p>
+                      <p className="text-base text-[#e5e7eb] font-medium">
+                        {overviewData.place?.display_name || overviewData.place?.name}
+                      </p>
+                      <p className="text-sm text-[#9ca3af] mt-1">
+                        {overviewData.place?.type} • {overviewData.place?.country?.name || 'N/A'}
+                      </p>
+                    </div>
+
+                    {overviewData.time && (
+                      <div>
+                        <p className="text-xs text-[#9ca3af] mb-1">Local Time</p>
+                        <p className="text-base text-[#e5e7eb]">
+                          {new Date(overviewData.time.primary.local_time_iso).toLocaleString()}
+                        </p>
+                        <p className="text-sm text-[#9ca3af] mt-1">
+                          {overviewData.time.primary.iana}
+                        </p>
+                      </div>
+                    )}
+
+                    {overviewData.population && (
+                      <div>
+                        <p className="text-xs text-[#9ca3af] mb-1">Population</p>
+                        <p className="text-base text-[#e5e7eb]">
+                          {overviewData.population.value.toLocaleString()}
+                        </p>
+                        <p className="text-sm text-[#9ca3af] mt-1">
+                          Data from {overviewData.population.metadata_year}
+                        </p>
+                      </div>
+                    )}
+
+                    {overviewData.weather && (
+                      <div>
+                        <p className="text-xs text-[#9ca3af] mb-1">Weather</p>
+                        <p className="text-base text-[#e5e7eb]">
+                          {overviewData.weather.conditions} • {overviewData.weather.temperature_c}°C
+                        </p>
+                      </div>
+                    )}
+
+                    {overviewData.leader && (
+                      <div>
+                        <p className="text-xs text-[#9ca3af] mb-1">Leader</p>
+                        <p className="text-base text-[#e5e7eb]">
+                          {overviewData.leader.name}
+                        </p>
+                        <p className="text-sm text-[#9ca3af] mt-1">
+                          {overviewData.leader.metadata_role.replace(/_/g, ' ')} • Since {overviewData.leader.metadata_asof}
+                        </p>
+                      </div>
+                    )}
+
+                    {overviewData.summary && (
+                      <div>
+                        <p className="text-xs text-[#9ca3af] mb-1">Summary</p>
+                        <p className="text-base text-[#e5e7eb] leading-relaxed">
+                          {overviewData.summary.text}
+                        </p>
+                      </div>
+                    )}
+                  </div>
+
+                  <div className="mt-4 pt-4 border-t border-[#2a2f3a]/60">
+                    <details className="text-xs">
+                      <summary className="text-[#9ca3af] cursor-pointer hover:text-[#e5e7eb] transition-colors">
+                        View Raw JSON
+                      </summary>
+                      <pre className="mt-2 p-3 bg-[#0a0d14] rounded-lg overflow-auto text-[#9ca3af] text-xs">
+                        {JSON.stringify(overviewData, null, 2)}
+                      </pre>
+                    </details>
+                  </div>
+                </div>
+              )}
             </div>
           </GECard>
 
