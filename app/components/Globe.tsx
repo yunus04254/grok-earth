@@ -1,14 +1,19 @@
 'use client';
 
-import { useEffect, useRef, useState, useCallback } from 'react';
+import { useEffect, useRef, useState, useCallback, useImperativeHandle, forwardRef } from 'react';
 import { createRoot } from 'react-dom/client';
 import mapboxgl from 'mapbox-gl';
 import type { Hotspot, HotspotsResponse } from '@/app/lib/types';
 import { MARKER_STYLES } from '@/app/lib/types';
 import { TweetList } from '@/components/TweetList';
 
+export interface GlobeRef {
+  flyToHotspot: (hotspot: Hotspot) => void;
+}
+
 interface GlobeProps {
   apiKey: string;
+  onHotspotSelect?: (hotspot: Hotspot) => void;
 }
 
 // Fallback data while API loads or fails
@@ -82,13 +87,34 @@ function generateHeatmapFeatures(blueZones: Hotspot[]) {
   return { type: 'FeatureCollection', features };
 }
 
-export default function Globe({ apiKey }: GlobeProps) {
+const Globe = forwardRef<GlobeRef, GlobeProps>(({ apiKey, onHotspotSelect }, ref) => {
   const mapContainer = useRef<HTMLDivElement>(null);
   const map = useRef<mapboxgl.Map | null>(null);
   const markersRef = useRef<mapboxgl.Marker[]>([]);
   const geCardMarkersRef = useRef<mapboxgl.Marker[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [hotspots, setHotspots] = useState<HotspotsResponse>(FALLBACK_HOTSPOTS);
+
+  // Expose flyTo capability to parent
+  useImperativeHandle(ref, () => ({
+    flyToHotspot: (hotspot: Hotspot) => {
+      // 1. Notify parent (opens UI)
+      if (onHotspotSelect) {
+        onHotspotSelect(hotspot);
+      }
+
+      // 2. Fly to location
+      if (map.current) {
+        map.current.flyTo({
+          center: [hotspot.lng, hotspot.lat],
+          zoom: 8,
+          pitch: 45,
+          duration: 2000,
+          essential: true
+        });
+      }
+    }
+  }));
 
   // Fetch hotspots from API
   useEffect(() => {
@@ -122,7 +148,12 @@ export default function Globe({ apiKey }: GlobeProps) {
     el.title = `${hotspot.name}${hotspot.topTrend ? ` - ${hotspot.topTrend}` : ''}`;
     el.style.cursor = 'pointer';
 
-    el.addEventListener('click', () => {
+    el.addEventListener('click', (e) => {
+      e.stopPropagation(); // Prevent map click events if any
+      if (onHotspotSelect) {
+        onHotspotSelect(hotspot);
+      }
+
       if (map.current) {
         map.current.flyTo({
           center: [hotspot.lng, hotspot.lat],
@@ -135,7 +166,7 @@ export default function Globe({ apiKey }: GlobeProps) {
     });
 
     return el;
-  }, []);
+  }, [onHotspotSelect]);
 
   // Create tweet feed marker element
   const createGECardMarker = useCallback((location: typeof GECARD_LOCATIONS[0]) => {
@@ -145,12 +176,12 @@ export default function Globe({ apiKey }: GlobeProps) {
     el.style.fontSize = '0.75rem';
     el.style.transform = 'scale(0.9)';
     el.style.transformOrigin = 'bottom left';
-    
+
     const root = createRoot(el);
     root.render(
       <TweetList
         region={location.region}
-        maxTweets={1}
+        maxTweets={1} // Single tweet card
         autoRotate={false}
       />
     );
@@ -190,10 +221,10 @@ export default function Globe({ apiKey }: GlobeProps) {
       for (let i = 0; i < count; i++) {
         const lat = Math.asin((Math.random() * 2 - 1) * 0.9) * (180 / Math.PI);
         const lng = (Math.random() * 360) - 180;
-        
+
         // Altitude in meters (Higher orbit - 800km to 1200km)
         // Positioned at higher altitude for better visibility
-        const altitude = 800000 + Math.random() * 400000; 
+        const altitude = 800000 + Math.random() * 400000;
 
         features.push({
           type: 'Feature',
@@ -394,4 +425,6 @@ export default function Globe({ apiKey }: GlobeProps) {
       <div ref={mapContainer} className="w-full h-full" />
     </div>
   );
-}
+});
+
+export default Globe;
