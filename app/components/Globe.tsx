@@ -89,6 +89,42 @@ function generateHeatmapFeatures(blueZones: Hotspot[]) {
   return { type: 'FeatureCollection', features };
 }
 
+// Generate 3D column polygons for red hotspots
+function generateColumnFeatures(hotspots: Hotspot[]) {
+  const features: any[] = [];
+  
+  hotspots.forEach(hotspot => {
+    // Create a circular polygon around the hotspot location
+    const radius = 0.15; // Degrees (~16km at equator)
+    const sides = 32; // Smooth circle
+    const coordinates: number[][] = [];
+    
+    for (let i = 0; i <= sides; i++) {
+      const angle = (i / sides) * Math.PI * 2;
+      const lng = hotspot.lng + radius * Math.cos(angle);
+      const lat = hotspot.lat + radius * Math.sin(angle);
+      coordinates.push([lng, lat]);
+    }
+    
+    features.push({
+      type: 'Feature',
+      geometry: {
+        type: 'Polygon',
+        coordinates: [coordinates]
+      },
+      properties: {
+        volume: hotspot.volume,
+        name: hotspot.name,
+        topTrend: hotspot.topTrend || '',
+        lat: hotspot.lat,
+        lng: hotspot.lng
+      }
+    });
+  });
+  
+  return { type: 'FeatureCollection', features };
+}
+
 const Globe = forwardRef<GlobeRef, GlobeProps>(({ apiKey, onHotspotSelect }, ref) => {
   const mapContainer = useRef<HTMLDivElement>(null);
   const map = useRef<mapboxgl.Map | null>(null);
@@ -365,6 +401,47 @@ const Globe = forwardRef<GlobeRef, GlobeProps>(({ apiKey, onHotspotSelect }, ref
         }
       }, 'satellites-model');
 
+      // Add empty 3D columns source (will be populated by separate effect)
+      map.current.addSource('hotspot-columns', {
+        type: 'geojson',
+        data: { type: 'FeatureCollection', features: [] } as any,
+      });
+
+      // 3D extruded columns for hotspot volume visualization
+      map.current.addLayer({
+        id: 'hotspot-columns-3d',
+        type: 'fill-extrusion',
+        source: 'hotspot-columns',
+        paint: {
+          // Height based on tweet volume (scale to visible range)
+          'fill-extrusion-height': [
+            '*',
+            ['get', 'volume'],
+            500  // Scale factor: 100k tweets = 50M meters (50,000km visible height)
+          ],
+          'fill-extrusion-base': 0,
+          // Color gradient based on volume (dark red to bright orange/red)
+          'fill-extrusion-color': [
+            'interpolate', ['linear'], ['get', 'volume'],
+            0, '#660000',        // Dark red for low
+            50000, '#cc0000',    // Medium red
+            75000, '#ff3333',    // Bright red
+            90000, '#ff6600',    // Orange-red
+            100000, '#ff8800'    // Bright orange for highest
+          ],
+          // Opacity changes with zoom for better visibility
+          'fill-extrusion-opacity': [
+            'interpolate', ['linear'], ['zoom'],
+            0, 0.8,
+            3, 0.75,
+            6, 0.7,
+            10, 0.6
+          ],
+          // Vertical gradient effect
+          'fill-extrusion-vertical-gradient': true
+        }
+      }, 'satellites-model');
+
       // Add tweet feed markers around the globe
       GECARD_LOCATIONS.forEach(location => {
         const marker = new mapboxgl.Marker({
@@ -406,14 +483,55 @@ const Globe = forwardRef<GlobeRef, GlobeProps>(({ apiKey, onHotspotSelect }, ref
     map.current.on('touchstart', () => { userInteracting = true; });
     map.current.on('touchend', () => { userInteracting = false; });
 
+    // Add click handler for 3D columns
+    map.current.on('click', 'hotspot-columns-3d', (e) => {
+      if (!map.current || !e.features || e.features.length === 0) return;
+      
+      const feature = e.features[0];
+      const { name, volume, topTrend, lat, lng } = feature.properties as any;
+      
+      // Create hotspot object from the column data
+      const hotspot: Hotspot = {
+        name,
+        lat,
+        lng,
+        volume,
+        type: 'red',
+        topTrend
+      };
+      
+      // Notify parent
+      if (onHotspotSelect) {
+        onHotspotSelect(hotspot);
+      }
+      
+      // Fly to location
+      map.current.flyTo({
+        center: [lng, lat],
+        zoom: 8,
+        pitch: 45,
+        duration: 2000,
+        essential: true
+      });
+    });
+
+    // Change cursor on hover over columns
+    map.current.on('mouseenter', 'hotspot-columns-3d', () => {
+      if (map.current) map.current.getCanvas().style.cursor = 'pointer';
+    });
+    map.current.on('mouseleave', 'hotspot-columns-3d', () => {
+      if (map.current) map.current.getCanvas().style.cursor = '';
+    });
+
     // Add click handler to fly to any location on the globe
     map.current.on('click', async (e) => {
       // Check if click was on a marker (markers have their own click handlers)
       const features = map.current!.queryRenderedFeatures(e.point);
       const clickedOnMarker = (e.originalEvent.target as HTMLElement).closest('.pulse-marker');
+      const clickedOnColumn = features.some(f => f.layer && f.layer.id === 'hotspot-columns-3d');
       
-      // Only handle click if it wasn't on a marker
-      if (!clickedOnMarker && map.current) {
+      // Only handle click if it wasn't on a marker or column
+      if (!clickedOnMarker && !clickedOnColumn && map.current) {
         const { lng, lat } = e.lngLat;
         
         // Fetch region name using Mapbox reverse geocoding first
@@ -545,6 +663,12 @@ const Globe = forwardRef<GlobeRef, GlobeProps>(({ apiKey, onHotspotSelect }, ref
           // Only attempt cleanup if the map style is loaded and valid
           const style = map.current.getStyle();
           if (style) {
+            if (map.current.getLayer('hotspot-columns-3d')) {
+              map.current.removeLayer('hotspot-columns-3d');
+            }
+            if (map.current.getSource('hotspot-columns')) {
+              map.current.removeSource('hotspot-columns');
+            }
             if (map.current.getLayer('trending-heatmap')) {
               map.current.removeLayer('trending-heatmap');
             }
@@ -573,7 +697,7 @@ const Globe = forwardRef<GlobeRef, GlobeProps>(({ apiKey, onHotspotSelect }, ref
     };
   }, [apiKey, createGECardMarker]);
 
-  // Update markers and heatmap when hotspots change (separate effect)
+  // Update markers, columns, and heatmap when hotspots change (separate effect)
   useEffect(() => {
     if (!map.current || isLoading) return;
 
@@ -593,10 +717,16 @@ const Globe = forwardRef<GlobeRef, GlobeProps>(({ apiKey, onHotspotSelect }, ref
       markersRef.current.push(marker);
     });
 
+    // Update 3D columns data
+    const columnsSource = map.current.getSource('hotspot-columns') as mapboxgl.GeoJSONSource;
+    if (columnsSource) {
+      columnsSource.setData(generateColumnFeatures(hotspots.redHotspots) as any);
+    }
+
     // Update heatmap data
-    const source = map.current.getSource('heatmap-data') as mapboxgl.GeoJSONSource;
-    if (source) {
-      source.setData(generateHeatmapFeatures(hotspots.blueZones) as any);
+    const heatmapSource = map.current.getSource('heatmap-data') as mapboxgl.GeoJSONSource;
+    if (heatmapSource) {
+      heatmapSource.setData(generateHeatmapFeatures(hotspots.blueZones) as any);
     }
   }, [hotspots, createRedMarker, isLoading]);
 
