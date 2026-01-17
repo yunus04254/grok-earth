@@ -1,26 +1,141 @@
 @import "tailwindcss";
+@import "mapbox-gl/dist/mapbox-gl.css";
 
+/* X Brand Colors - Pure Black and White */
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --x-black: #000000;
+  --x-white: #ffffff;
+  --x-gray-100: #e7e9ea;
+  --x-gray-200: #d6d9db;
+  --x-gray-300: #71767b;
+  --x-gray-400: #536471;
+  --x-gray-500: #2f3336;
+  --x-gray-600: #1d1f23;
+  --x-gray-700: #16181c;
+  --x-gray-800: #0f1419;
+  --x-gray-900: #000000;
 }
 
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
+  --color-background: var(--x-black);
+  --color-foreground: var(--x-gray-100);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+body {
+  background: var(--x-black);
+  color: var(--x-gray-100);
+  font-family: var(--font-sans), Arial, Helvetica, sans-serif;
+  overflow: hidden;
+}
+
+/* Sidebar Panel - Edge connected, wrapped around icons, curves toward left edge */
+.sidebar-panel {
+  background: rgba(15, 20, 25, 0.95);
+  border-right: 1px solid rgba(47, 51, 54, 0.6);
+  border-top: 1px solid rgba(47, 51, 54, 0.6);
+  border-bottom: 1px solid rgba(47, 51, 54, 0.6);
+  border-top-right-radius: 16px;
+  border-bottom-right-radius: 16px;
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+}
+
+/* Glassmorphism Panel - Dark X style */
+.glass-panel {
+  background: rgba(15, 20, 25, 0.9);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(47, 51, 54, 0.5);
+  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.6);
+}
+
+/* Icon Button */
+.icon-button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  color: var(--x-gray-100);
+  transition: all 0.2s ease;
+  cursor: pointer;
+}
+
+.icon-button:hover {
+  background: rgba(231, 233, 234, 0.1);
+  color: var(--x-white);
+}
+
+/* Pulsing Marker */
+.pulse-marker {
+  position: relative;
+  width: 24px;
+  height: 24px;
+  cursor: pointer;
+}
+
+.pulse-dot {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 12px;
+  height: 12px;
+  background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+  border-radius: 50%;
+  box-shadow: 0 0 8px rgba(239, 68, 68, 0.6);
+  z-index: 2;
+}
+
+.pulse-ring {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 12px;
+  height: 12px;
+  border: 2px solid #ef4444;
+  border-radius: 50%;
+  animation: pulse-ring 1.5s ease-out infinite;
+  z-index: 1;
+}
+
+@keyframes pulse-ring {
+  0% {
+    width: 12px;
+    height: 12px;
+    opacity: 1;
+  }
+
+  100% {
+    width: 40px;
+    height: 40px;
+    opacity: 0;
   }
 }
 
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+/* Hide Mapbox attribution for cleaner UI */
+.mapboxgl-ctrl-attrib,
+.mapboxgl-ctrl-logo {
+  display: none !important;
+}
+
+/* Ensure pure black everywhere - remove any blue tints */
+html,
+body,
+#__next {
+  background: #000000 !important;
+}
+
+/* Override any vignette or glow effects */
+.mapboxgl-map {
+  background: #000000 !important;
+}
+
+/* Remove any box shadows that might appear blue */
+* {
+  --tw-shadow-color: transparent;
 }
