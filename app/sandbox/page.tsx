@@ -1,14 +1,26 @@
 "use client";
 
 import { GECard } from "@/components/GECard";
+import { GEInput } from "@/components/GEInput";
 import { Info, BookOpen, Headphones } from "lucide-react";
 
 export default function Sandbox() {
   return (
-    <div className="flex min-h-screen items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex min-h-screen w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
+    <div 
+      className="bg-zinc-50 font-sans dark:bg-black"
+      style={{
+        position: 'fixed',
+        top: 0,
+        left: 0,
+        right: 0,
+        bottom: 0,
+        overflowY: 'auto',
+        overflowX: 'hidden'
+      }}
+    >
+      <main className="w-full max-w-3xl mx-auto flex flex-col py-16 px-8 sm:px-16 bg-white dark:bg-black">
         
-        <div className="mt-16 w-full space-y-6">
+        <div className="w-full space-y-6 pb-8">
           {/* Example with icon, title, LIVE indicator, and control icons */}
           <GECard
             icon={<Info className="h-6 w-6" />}
@@ -63,6 +75,13 @@ export default function Sandbox() {
               </p>
             </div>
           </GECard>
+
+          {/* GEInput Example */}
+          <div className="w-full space-y-4 pt-4">
+            <GEInput placeholder="Enter your search query..." />
+            <GEInput type="email" placeholder="Email address" />
+            <GEInput type="password" placeholder="Password" />
+          </div>
         </div>
       </main>
     </div>
