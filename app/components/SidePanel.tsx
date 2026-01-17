@@ -71,6 +71,8 @@ interface SidePanelProps {
 }
 
 export default function SidePanel({ onGrokipediaClick, onGrokRadioClick }: SidePanelProps) {
+    const [hoveredIndex, setHoveredIndex] = useState<number | null>(null);
+    
     const ICON_ITEMS: IconItem[] = [
         { icon: TweetsIcon, label: 'Tweets' },
         { icon: LiveSpacesIcon, label: 'X Live Spaces' },
