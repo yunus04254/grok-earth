@@ -46,7 +46,7 @@ export default function ClientHome({ apiKey }: ClientHomeProps) {
               "What happened today in the world?",
               "Tell me about current events in Asia",
             ]}
-            placeholder="Ask anything about what's happening in the world..."
+            focusRing={true}
             className="w-full group-hover:scale-[1.02] group-hover:shadow-[0_0_0_1px_rgba(255,255,255,0.12),inset_0_1px_0_0_rgba(255,255,255,0.15),0_12px_48px_rgba(0,0,0,0.6),0_6px_20px_rgba(0,0,0,0.4)] transition-all duration-300 ease-out"
           />
         </div>

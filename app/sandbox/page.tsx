@@ -1,10 +1,12 @@
 "use client";
 
+import { useState } from "react";
 import { GECard } from "@/components/GECard";
 import { GEInput } from "@/components/GEInput";
 import { Info, BookOpen, Headphones } from "lucide-react";
 
 export default function Sandbox() {
+  const [isLoading, setIsLoading] = useState(true);
   return (
     <div 
       className="bg-zinc-50 font-sans dark:bg-black"
@@ -80,6 +82,15 @@ export default function Sandbox() {
           <div className="w-full space-y-4 pt-4">
             <GEInput 
               autoType={true}
+            />
+            <GEInput 
+              placeholder="Type something here..."
+              loading={isLoading}
+              onChange={() => {
+                // Simulate loading state
+                setIsLoading(true);
+                setTimeout(() => setIsLoading(false), 2000);
+              }}
             />
           </div>
         </div>
