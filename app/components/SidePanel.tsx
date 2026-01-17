@@ -27,6 +27,14 @@ function PodcastIcon() {
     );
 }
 
+function RadioIcon() {
+    return (
+        <svg viewBox="0 0 24 24" className="w-5 h-5" fill="currentColor">
+            <path d="M3.24 6.15C2.51 6.43 2 7.17 2 8v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2H8.3l8.26-3.34L15.88 1 3.24 6.15zM7 20c-1.66 0-3-1.34-3-3s1.34-3 3-3 3 1.34 3 3-1.34 3-3 3zm13-8h-2v-2h-2v2H4V8h16v4z" />
+        </svg>
+    );
+}
+
 function GrokipediaIcon() {
     return (
         <svg viewBox="0 0 24 24" className="w-5 h-5" fill="currentColor">
@@ -59,15 +67,15 @@ interface IconItem {
 
 interface SidePanelProps {
     onGrokipediaClick?: () => void;
+    onGrokRadioClick?: () => void;
 }
 
-export default function SidePanel({ onGrokipediaClick }: SidePanelProps) {
-    const [hoveredIndex, setHoveredIndex] = useState<number | null>(null);
-
+export default function SidePanel({ onGrokipediaClick, onGrokRadioClick }: SidePanelProps) {
     const ICON_ITEMS: IconItem[] = [
         { icon: TweetsIcon, label: 'Tweets' },
         { icon: LiveSpacesIcon, label: 'X Live Spaces' },
         { icon: PodcastIcon, label: 'Podcast' },
+        { icon: RadioIcon, label: 'Grok Radio', onClick: onGrokRadioClick },
         { icon: GrokipediaIcon, label: 'Grokipedia', onClick: onGrokipediaClick },
         { icon: PredictionMarketsIcon, label: 'Prediction Markets' },
         { icon: StarlinkIcon, label: 'Starlink' },
