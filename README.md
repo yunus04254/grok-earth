@@ -1,11 +1,7 @@
-# 🌍 Grok Earth
-
-**Mission Control for the planet**
-
-
 ![Grok Earth](app/assets/GrokEarth.png)
-
-## 🎯 Mission & Vision
+**Mission Control for the planet**
+## Mission & Vision
+To understand the universe, one must first understand the Earth.
 
 **Themes:**
 - **Mission Control** - Centralized command center for global intelligence
@@ -16,7 +12,10 @@
 - **Palantir UI/UX × Starplex** - Enterprise-grade design with futuristic aesthetics
 - **LIVE** - Real-time data and updates
 
-## 🚀 Features
+<img width="800" height="400" alt="Screenshot 2026-01-17 at 19 41 59" src="https://github.com/user-attachments/assets/d4c2d8ce-2aa2-4ff4-93e4-8950c43bdf47" />
+
+
+## Features
 
 ### Interactive 3D Globe
 - **Mapbox-powered 3D globe** with smooth animations and transitions
@@ -29,7 +28,7 @@
 
 ### Information Cards
 
-#### 📊 Overview Card
+#### 🔍 Overview Card
 - Weather information
 - Location name and basic details
 - Current leadership/president
@@ -40,7 +39,7 @@
 - Curated headlines and articles
 - Source attribution and timestamps
 
-#### 🐦 Live Tweet Feed
+#### 🐦 Live X Post Feed
 - Trending and live X posts in the selected area
 - Real-time post updates
 - Filterable by region and topic
