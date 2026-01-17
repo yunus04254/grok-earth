@@ -220,9 +220,13 @@ export default function Globe({ apiKey }: GlobeProps) {
         source: 'heatmap-data',
         paint: {
           'heatmap-weight': ['get', 'intensity'],
+          // Keep intensity visible at all zoom levels
           'heatmap-intensity': [
             'interpolate', ['linear'], ['zoom'],
-            0, 1, 3, 0.5, 5, 0
+            0, 1,
+            3, 0.8,
+            6, 0.6,
+            10, 0.4
           ],
           // Blue gradient for emerging trends
           'heatmap-color': [
@@ -234,13 +238,21 @@ export default function Globe({ apiKey }: GlobeProps) {
             0.8, 'rgba(150, 240, 255, 0.8)',
             1, 'rgba(200, 255, 255, 0.9)'
           ],
+          // Radius shrinks as you zoom in for precision
           'heatmap-radius': [
             'interpolate', ['linear'], ['zoom'],
-            0, 30, 3, 20, 5, 10
+            0, 40,
+            3, 30,
+            6, 20,
+            10, 15
           ],
+          // Keep opacity visible at all zoom levels
           'heatmap-opacity': [
             'interpolate', ['linear'], ['zoom'],
-            0, 0.7, 2, 0.5, 3, 0.2, 4, 0
+            0, 0.7,
+            3, 0.6,
+            6, 0.5,
+            10, 0.4
           ]
         }
       }, 'satellites-model');

@@ -87,15 +87,12 @@ async function fetchTrendsForLocation(woeid: number, apiKey: string): Promise<{
         );
 
         if (!response.ok) {
-            const errorText = await response.text().catch(() => 'No error details');
-            console.error(`❌ Failed to fetch trends for WOEID ${woeid}: ${response.status} - ${errorText.substring(0, 100)}`);
             return null;
         }
 
         const result: XTrendsResponseV2 = await response.json();
 
         if (!result || !result.data || result.data.length === 0) {
-            console.warn(`⚠️ No trends data for WOEID ${woeid}`);
             return null;
         }
 
@@ -167,7 +164,7 @@ async function fetchAllHotspots(apiKey: string): Promise<HotspotsResponse> {
         return FALLBACK_DATA;
     }
 
-    // RED: Sort by VOLUME (highest activity)
+    // RED: Sort by VOLUME (highest activity) - these take priority
     const byVolume = [...results].sort((a, b) => b.totalVolume - a.totalVolume);
     const redHotspots = byVolume.slice(0, K_RED_HOTSPOTS)
         .map(result => {
@@ -180,12 +177,18 @@ async function fetchAllHotspots(apiKey: string): Promise<HotspotsResponse> {
                 volume: result.totalVolume,
                 type: 'red' as const,
                 topTrend: result.topTrend,
-            } satisfies Hotspot;
+            };
         })
-        .filter((h): h is Hotspot => h !== null);
+        .filter(Boolean) as Hotspot[];
 
-    // BLUE: Sort by VELOCITY (emerging trends) - cities CAN appear in both
-    const byVelocity = [...results].sort((a, b) => b.velocityScore - a.velocityScore);
+    // Get the WOEIDs of red hotspots to exclude from blue
+    const redWoeids = new Set(byVolume.slice(0, K_RED_HOTSPOTS).map(r => r.woeid));
+
+    // BLUE: Sort by VELOCITY (emerging trends) - exclude cities already in red
+    const byVelocity = [...results]
+        .filter(r => !redWoeids.has(r.woeid)) // Exclude red hotspots
+        .sort((a, b) => b.velocityScore - a.velocityScore);
+
     const blueZones = byVelocity.slice(0, M_BLUE_ZONES)
         .map(result => {
             const location = getLocationByWoeid(result.woeid);
@@ -197,9 +200,9 @@ async function fetchAllHotspots(apiKey: string): Promise<HotspotsResponse> {
                 volume: result.velocityScore,
                 type: 'blue' as const,
                 topTrend: result.emergingTrend,
-            } satisfies Hotspot;
+            };
         })
-        .filter((h): h is Hotspot => h !== null);
+        .filter(Boolean) as Hotspot[];
 
     return {
         redHotspots,
@@ -224,21 +227,11 @@ export async function GET() {
         const apiKey = process.env.X_API_KEY;
 
         if (!apiKey) {
-            console.warn('⚠️ X_API_KEY not configured, using FALLBACK data');
-            console.log('📍 Fallback hotspots:', FALLBACK_DATA.redHotspots.length, 'red,', FALLBACK_DATA.blueZones.length, 'blue');
             return NextResponse.json(FALLBACK_DATA);
         }
 
         // Fetch fresh data
         const data = await fetchAllHotspots(apiKey);
-
-        // Check if we got real data or fell back
-        if (data.source === 'fallback') {
-            console.warn('⚠️ X API Trends requires PAID Basic tier ($100/mo). Using fallback data.');
-            console.log('📍 Fallback hotspots:', data.redHotspots.length, 'red,', data.blueZones.length, 'blue');
-        } else {
-            console.log('✅ Successfully fetched trends from X API');
-        }
 
         // Update cache
         cachedData = {
@@ -248,8 +241,7 @@ export async function GET() {
 
         return NextResponse.json(data);
     } catch (error) {
-        console.error('❌ Error in trends API:', error);
-        console.log('📍 Using FALLBACK data due to error');
+        console.error('Trends API error:', error);
         return NextResponse.json(FALLBACK_DATA);
     }
 }
