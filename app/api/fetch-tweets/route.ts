@@ -1,3 +1,13 @@
+interface Tweet {
+  id: string;
+  content: string;
+  handle: string;
+  avatar: string;
+  likes: number;
+  retweets: number;
+  createdAt: string;
+}
+
 export async function GET(req: Request) {
   try {
     const { searchParams } = new URL(req.url);
@@ -12,9 +22,10 @@ export async function GET(req: Request) {
       );
     }
 
-    // Search for recent tweets from NYC area
+    // Search for recent tweets from the location
+    // Use relevancy sort to get more popular/relevant tweets from X's algorithm
     const query = encodeURIComponent(`${location} -is:retweet lang:en`);
-    const url = `https://api.twitter.com/2/tweets/search/recent?query=${query}&max_results=50&tweet.fields=public_metrics,created_at,author_id&expansions=author_id&user.fields=username,profile_image_url`;
+    const url = `https://api.twitter.com/2/tweets/search/recent?query=${query}&max_results=50&sort_order=relevancy&tweet.fields=public_metrics,created_at,author_id&expansions=author_id&user.fields=username,profile_image_url`;
 
     const response = await fetch(url, {
       headers: {
@@ -35,7 +46,7 @@ export async function GET(req: Request) {
     const data = await response.json();
     
     // Transform the data to match our TweetList component format
-    const tweets = data.data?.map((tweet: any) => {
+    const tweets: Tweet[] = data.data?.map((tweet: any) => {
       const author = data.includes?.users?.find((user: any) => user.id === tweet.author_id);
       return {
         id: tweet.id,
@@ -48,10 +59,11 @@ export async function GET(req: Request) {
       };
     }) || [];
 
-    // Sort tweets by engagement (likes + retweets) in descending order
+    // Sort tweets by total engagement (retweets weighted higher as they indicate stronger engagement)
     tweets.sort((a, b) => {
-      const engagementA = a.likes + a.retweets;
-      const engagementB = b.likes + b.retweets;
+      // Weight retweets more heavily as they represent stronger engagement
+      const engagementA = (a.retweets * 2) + a.likes;
+      const engagementB = (b.retweets * 2) + b.likes;
       return engagementB - engagementA;
     });
 
