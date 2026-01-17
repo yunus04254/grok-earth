@@ -256,3 +256,49 @@ body {
 .tweet-slide-up {
   animation: slideUp 0.7s ease-in-out;
 }
+
+/* Shimmer/glow skeleton animation */
+@keyframes shimmer {
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
+}
+
+.skeleton-shimmer {
+  background: linear-gradient(
+    90deg,
+    rgba(42, 47, 58, 0.6) 0%,
+    rgba(42, 47, 58, 0.6) 30%,
+    rgba(96, 165, 250, 0.5) 50%,
+    rgba(42, 47, 58, 0.6) 70%,
+    rgba(42, 47, 58, 0.6) 100%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 2.5s ease-in-out infinite;
+  position: relative;
+  overflow: hidden;
+  border-radius: 4px;
+}
+
+.skeleton-shimmer::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(96, 165, 250, 0.4) 45%,
+    rgba(96, 165, 250, 0.6) 50%,
+    rgba(96, 165, 250, 0.4) 55%,
+    transparent 100%
+  );
+  animation: shimmer 2.5s ease-in-out infinite;
+  filter: blur(6px);
+  opacity: 0.8;
+}

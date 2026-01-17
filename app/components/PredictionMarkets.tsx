@@ -156,7 +156,6 @@ export default function PredictionMarkets({ onClose, city }: PredictionMarketsPr
       <GECard
         icon={<TrendingUp className="h-5 w-5" />}
         title="Prediction Markets"
-        live={isLoading}
         onClose={onClose}
         maxHeight={700}
       >

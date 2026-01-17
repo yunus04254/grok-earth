@@ -433,7 +433,6 @@ export default function GrokRadio({ onClose, city }: GrokRadioProps) {
       <GECard
         icon={mode === 'call' ? <Phone className="w-5 h-5" /> : <Radio className="w-5 h-5" />}
         title={mode === 'call' ? 'On Call with Grok' : 'Grok Radio'}
-        live={status === 'streaming'}
         onClose={() => { stop(); onClose(); }}
         maxHeight={700}
       >

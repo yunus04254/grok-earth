@@ -24,7 +24,6 @@ export default function CityTrendsCard({ hotspot, onClose }: CityTrendsCardProps
             <GECard
                 title={hotspot.name}
                 icon={<Activity className="w-5 h-5 text-red-500 animate-pulse" />}
-                live={true}
                 onClose={onClose}
                 className="w-[400px] max-h-[calc(100vh-120px)]"
                 maxHeight={800}

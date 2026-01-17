@@ -239,10 +239,11 @@ export default function ClientHome({ apiKey }: ClientHomeProps) {
 
       {/* Overview Card - opens when input is submitted or hotspot is selected */}
       <AnimatePresence>
-        {selectedCity && showOverviewCard && overviewCardData && (
+        {selectedCity && showOverviewCard && (
           <OverviewCard 
-            key={`overview-${overviewCardData.place?.name || selectedCity}`}
+            key={`overview-${overviewCardData?.place?.name || selectedCity}`}
             data={overviewCardData}
+            isLoading={isLoadingOverview}
             onClose={() => {
               setShowOverviewCard(false);
             }} 
@@ -251,7 +252,7 @@ export default function ClientHome({ apiKey }: ClientHomeProps) {
       </AnimatePresence>
 
       {/* Logo in top left */}
-      <div className="fixed top-6 left-6 z-20">
+      <div className="fixed top-6 left-6 z-20 flex items-center gap-4">
         <Image
           src={GrokEarthLogo}
           alt="Grok Earth"
@@ -260,6 +261,14 @@ export default function ClientHome({ apiKey }: ClientHomeProps) {
           priority
           className="h-auto"
         />
+        {/* Live indicator */}
+        <div className="flex items-center gap-3">
+          <span className="relative flex h-4 w-4">
+            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-500 opacity-75"></span>
+            <span className="relative inline-flex rounded-full h-4 w-4 bg-red-500"></span>
+          </span>
+          <span className="text-lg font-bold text-red-500 tracking-wide">LIVE</span>
+        </div>
       </div>
 
       {/* Globe Reset Button - Bottom Left */}

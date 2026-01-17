@@ -371,7 +371,6 @@ Be engaging, informative, and conversational. If the user asks about a specific 
         <GECard
           icon={<Radio className="h-6 w-6" />}
           title="Grok Voice Agent"
-          live={isConnected && isListening}
           onClose={onClose}
         >
           <div className="space-y-6">

@@ -94,7 +94,6 @@ export default function Grokipedia({ onClose, city }: GrokipediaProps) {
       <GECard
         icon={<BookOpen className="h-5 w-5" />}
         title="Grokipedia"
-        live={isLoading}
         onClose={onClose}
         maxHeight={700}
       >

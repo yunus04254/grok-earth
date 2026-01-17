@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { GECard } from "@/components/GECard";
-import { Info } from "lucide-react";
+import { Info, Loader2 } from "lucide-react";
 import { motion } from "framer-motion";
 
 // Helper function to get weather icon code from conditions (fallback)
@@ -130,19 +130,97 @@ export type OverviewCardData = {
 };
 
 interface OverviewCardProps {
-  data: OverviewCardData;
+  data: OverviewCardData | null;
+  isLoading?: boolean;
   onClose?: () => void;
   onExpand?: () => void;
 }
 
-export default function OverviewCard({ data, onClose, onExpand }: OverviewCardProps) {
-  const iso2 = data.place?.country?.iso2;
+export default function OverviewCard({ data, isLoading = false, onClose, onExpand }: OverviewCardProps) {
+  const iso2 = data?.place?.country?.iso2;
   const flagUrl = iso2 
     ? `https://flagsapi.com/${iso2}/shiny/64.png`
     : null;
 
   // Get real-time for the location's timezone
-  const { formattedTime } = useRealTime(data.time?.primary.iana);
+  const { formattedTime } = useRealTime(data?.time?.primary.iana);
+
+  // Show loading state
+  if (isLoading || !data) {
+    return (
+      <motion.div 
+        className="fixed left-[800px] top-24 z-40 w-[340px] max-h-[calc(100vh-280px)]"
+        initial={{ opacity: 0, y: -20 }}
+        animate={{ opacity: 1, y: 0 }}
+        exit={{ opacity: 0, y: -20 }}
+        transition={{ duration: 0.2, ease: 'easeOut', delay: 0.1 }}
+      >
+        <GECard
+          icon={<Info className="h-6 w-6" />}
+          title="Region Overview"
+          onClose={onClose}
+          onExpand={onExpand}
+        >
+          <div className="space-y-4">
+            {/* Loading skeleton */}
+            <div className="flex flex-col items-center justify-center py-8 text-center space-y-3">
+              <Loader2 className="w-8 h-8 text-[#60a5fa] animate-spin" />
+              <p className="text-[#9ca3af] text-sm">
+                Loading region overview...
+              </p>
+            </div>
+
+            {/* Skeleton placeholders with shimmer effect */}
+            <div className="space-y-4">
+              <div>
+                <p className="text-sm text-[#9ca3af] mb-1.5">Location</p>
+                <div className="flex items-center gap-3">
+                  <div className="w-8 h-8 rounded-sm skeleton-shimmer relative overflow-hidden" />
+                  <div className="flex-1">
+                    <div className="h-4 rounded w-3/4 mb-2 skeleton-shimmer relative overflow-hidden" />
+                    <div className="h-3 rounded w-1/2 skeleton-shimmer relative overflow-hidden" />
+                  </div>
+                </div>
+              </div>
+
+              <div>
+                <p className="text-sm text-[#9ca3af] mb-1.5">Local Time</p>
+                <div className="h-4 rounded w-2/3 skeleton-shimmer relative overflow-hidden" />
+              </div>
+
+              <div>
+                <p className="text-sm text-[#9ca3af] mb-1.5">Population</p>
+                <div className="h-4 rounded w-1/2 skeleton-shimmer relative overflow-hidden" />
+              </div>
+
+              <div>
+                <p className="text-sm text-[#9ca3af] mb-1.5">Weather</p>
+                <div className="flex items-center gap-2">
+                  <div className="w-6 h-6 rounded skeleton-shimmer relative overflow-hidden" />
+                  <div className="h-4 rounded w-24 skeleton-shimmer relative overflow-hidden" />
+                </div>
+              </div>
+
+              <div>
+                <p className="text-sm text-[#9ca3af] mb-1.5">Leader</p>
+                <div className="h-4 rounded w-3/4 mb-2 skeleton-shimmer relative overflow-hidden" />
+                <div className="h-3 rounded w-1/2 skeleton-shimmer relative overflow-hidden" />
+              </div>
+
+              <div>
+                <p className="text-sm text-[#9ca3af] mb-1.5">Summary</p>
+                <div className="space-y-2">
+                  <div className="h-3 rounded w-full skeleton-shimmer relative overflow-hidden" />
+                  <div className="h-3 rounded w-full skeleton-shimmer relative overflow-hidden" />
+                  <div className="h-3 rounded w-5/6 skeleton-shimmer relative overflow-hidden" />
+                </div>
+              </div>
+            </div>
+          </div>
+        </GECard>
+      </motion.div>
+    );
+  }
 
   return (
     <motion.div 
@@ -155,7 +233,6 @@ export default function OverviewCard({ data, onClose, onExpand }: OverviewCardPr
       <GECard
         icon={<Info className="h-6 w-6" />}
         title="Region Overview"
-        live={true}
         onClose={onClose}
         onExpand={onExpand}
       >

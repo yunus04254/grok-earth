@@ -19,7 +19,7 @@ export interface GECardProps extends React.HTMLAttributes<HTMLDivElement> {
 }
 
 const GECard = React.forwardRef<HTMLDivElement, GECardProps>(
-  ({ className, children, icon, title, live, onClose, onExpand, maxHeight, region, showControls = true, ...props }, ref) => {
+  ({ className, children, icon, title, live = false, onClose, onExpand, maxHeight, region, showControls = true, ...props }, ref) => {
     const maxHeightStyle = maxHeight
       ? typeof maxHeight === 'number'
         ? { maxHeight: `${maxHeight}px` }
