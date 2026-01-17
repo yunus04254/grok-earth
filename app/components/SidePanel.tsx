@@ -49,16 +49,25 @@ function StarlinkIcon() {
     );
 }
 
-const ICON_ITEMS = [
-    { icon: TweetsIcon, label: 'Tweets' },
-    { icon: LiveSpacesIcon, label: 'X Live Spaces' },
-    { icon: PodcastIcon, label: 'Podcast' },
-    { icon: GrokipediaIcon, label: 'Grokipedia' },
-    { icon: PredictionMarketsIcon, label: 'Local Prediction Markets' },
-    { icon: StarlinkIcon, label: 'Starlink Satellites' },
-];
+interface IconItem {
+    icon: () => JSX.Element;
+    label: string;
+    onClick?: () => void;
+}
 
-export default function SidePanel() {
+interface SidePanelProps {
+    onGrokipediaClick?: () => void;
+}
+
+export default function SidePanel({ onGrokipediaClick }: SidePanelProps) {
+    const ICON_ITEMS: IconItem[] = [
+        { icon: TweetsIcon, label: 'Tweets' },
+        { icon: LiveSpacesIcon, label: 'X Live Spaces' },
+        { icon: PodcastIcon, label: 'Podcast' },
+        { icon: GrokipediaIcon, label: 'Grokipedia', onClick: onGrokipediaClick },
+        { icon: PredictionMarketsIcon, label: 'Local Prediction Markets' },
+        { icon: StarlinkIcon, label: 'Starlink Satellites' },
+    ];
     const iconSize = 40;
     const iconGap = 10;
     const totalIconsHeight = ICON_ITEMS.length * iconSize + (ICON_ITEMS.length - 1) * iconGap;
@@ -127,14 +136,16 @@ export default function SidePanel() {
                 }}
             >
                 {ICON_ITEMS.map((item) => (
-                    <div
+                    <button
                         key={item.label}
                         className="icon-button"
                         title={item.label}
                         style={{ width: iconSize, height: iconSize }}
+                        onClick={item.onClick}
+                        disabled={!item.onClick}
                     >
                         <item.icon />
-                    </div>
+                    </button>
                 ))}
             </div>
         </div>
