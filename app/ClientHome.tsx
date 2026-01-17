@@ -207,11 +207,13 @@ export default function ClientHome({ apiKey }: ClientHomeProps) {
         showPredictionMarkets={showPredictionMarkets}
         showGrokImagine={showGrokImagine}
         showStarlink={showStarlink}
+        showLiveTweetFeed={showLiveTweetFeed}
         onToggleGrokipedia={() => setShowGrokipedia(!showGrokipedia)}
         onToggleGrokRadio={() => setShowGrokRadio(!showGrokRadio)}
         onTogglePredictionMarkets={() => setShowPredictionMarkets(!showPredictionMarkets)}
         onToggleGrokImagine={() => setShowGrokImagine(!showGrokImagine)}
         onToggleStarlink={() => setShowStarlink(!showStarlink)}
+        onToggleLiveTweetFeed={() => setShowLiveTweetFeed(!showLiveTweetFeed)}
       />
       <MarkerKey />
 
