@@ -1,5 +1,8 @@
 'use client';
 
+import React from 'react';
+import { GETooltip, GETooltipProvider } from '@/components/GETooltip';
+
 // Icons representing the 6 features
 function TweetsIcon() {
     return (
@@ -49,16 +52,25 @@ function StarlinkIcon() {
     );
 }
 
-const ICON_ITEMS = [
-    { icon: TweetsIcon, label: 'Tweets' },
-    { icon: LiveSpacesIcon, label: 'X Live Spaces' },
-    { icon: PodcastIcon, label: 'Podcast' },
-    { icon: GrokipediaIcon, label: 'Grokipedia' },
-    { icon: PredictionMarketsIcon, label: 'Local Prediction Markets' },
-    { icon: StarlinkIcon, label: 'Starlink Satellites' },
-];
+interface IconItem {
+    icon: () => React.ReactElement;
+    label: string;
+    onClick?: () => void;
+}
 
-export default function SidePanel() {
+interface SidePanelProps {
+    onGrokipediaClick?: () => void;
+}
+
+export default function SidePanel({ onGrokipediaClick }: SidePanelProps) {
+    const ICON_ITEMS: IconItem[] = [
+        { icon: TweetsIcon, label: 'Tweets' },
+        { icon: LiveSpacesIcon, label: 'X Live Spaces' },
+        { icon: PodcastIcon, label: 'Podcast' },
+        { icon: GrokipediaIcon, label: 'Grokipedia', onClick: onGrokipediaClick },
+        { icon: PredictionMarketsIcon, label: 'Local Prediction Markets' },
+        { icon: StarlinkIcon, label: 'Starlink Satellites' },
+    ];
     const iconSize = 40;
     const iconGap = 10;
     const totalIconsHeight = ICON_ITEMS.length * iconSize + (ICON_ITEMS.length - 1) * iconGap;
@@ -116,27 +128,31 @@ export default function SidePanel() {
             </svg>
 
             {/* Icons container */}
-            <div
-                className="relative flex flex-col items-center justify-center h-full"
-                style={{
-                    paddingTop: curveHeight + paddingY,
-                    paddingBottom: curveHeight + paddingY,
-                    paddingLeft: paddingLeft,
-                    paddingRight: paddingRight,
-                    gap: iconGap
-                }}
-            >
-                {ICON_ITEMS.map((item) => (
-                    <div
-                        key={item.label}
-                        className="icon-button"
-                        title={item.label}
-                        style={{ width: iconSize, height: iconSize }}
-                    >
-                        <item.icon />
-                    </div>
-                ))}
-            </div>
+            <GETooltipProvider>
+                <div
+                    className="relative flex flex-col items-center justify-center h-full"
+                    style={{
+                        paddingTop: curveHeight + paddingY,
+                        paddingBottom: curveHeight + paddingY,
+                        paddingLeft: paddingLeft,
+                        paddingRight: paddingRight,
+                        gap: iconGap
+                    }}
+                >
+                    {ICON_ITEMS.map((item) => (
+                        <GETooltip key={item.label} content={item.label} side="right">
+                            <button
+                                className="icon-button"
+                                style={{ width: iconSize, height: iconSize }}
+                                onClick={item.onClick}
+                                disabled={!item.onClick}
+                            >
+                                <item.icon />
+                            </button>
+                        </GETooltip>
+                    ))}
+                </div>
+            </GETooltipProvider>
         </div>
     );
 }
