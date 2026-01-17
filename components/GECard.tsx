@@ -31,8 +31,6 @@ const GECard = React.forwardRef<HTMLDivElement, GECardProps>(
           "shadow-[0_8px_32px_rgba(0,0,0,0.4),0_2px_8px_rgba(0,0,0,0.2)]",
           // Subtle hover effect for interactivity
           "transition-all duration-200",
-          // Make card draggable
-          "cursor-move",
           "relative",
           className
         )}
