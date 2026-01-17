@@ -71,7 +71,22 @@ export default function Globe({ apiKey }: GlobeProps) {
     map.current.on('style.load', () => {
       if (!map.current) return;
 
-      // Setup lighting for 3D models
+      // Add a 3D model source (using satellite GLB model)
+      // @ts-ignore
+      map.current.addModel(
+        'satellite-model',
+        '/satellite.glb'
+      );
+      
+      // Check if model loads
+      map.current.on('error', (e) => {
+        // @ts-ignore
+        if (e.sourceId === 'satellite-model' || e.error?.message?.includes('model')) {
+             console.error('Model load error:', e);
+        }
+      });
+
+      // Setup atmospheric lighting for 3D models
       if (!map.current.getLayer('sky')) {
         map.current.addLayer({
           id: 'sky',
@@ -83,20 +98,6 @@ export default function Globe({ apiKey }: GlobeProps) {
           }
         });
       }
-
-      // Add a 3D model source (using Starlink satellite GLB model)
-      // @ts-ignore - model API might not be fully typed
-      if (map.current.addModel) {
-        try {
-          // @ts-ignore
-          map.current.addModel(
-            'satellite-model',
-            '/starlink.glb'
-          );
-        } catch (error) {
-          console.error('Error adding model:', error);
-        }
-      }
       
       // Add satellite source
       const satelliteData = generateSatelliteGeoJSON(42);
@@ -105,8 +106,8 @@ export default function Globe({ apiKey }: GlobeProps) {
         data: satelliteData as any,
       });
 
-      // Add model layer
-      // @ts-ignore - model layer type might not be fully typed
+      // Add model layer with proper altitude
+      // @ts-ignore
       map.current.addLayer({
         id: 'satellites-model',
         type: 'model',
@@ -126,6 +127,8 @@ export default function Globe({ apiKey }: GlobeProps) {
           ],
           'model-opacity': 1,
           'model-type': 'common-3d',
+          // @ts-ignore
+          'model-color': '#ffffff',
         },
       });
 
@@ -139,11 +142,6 @@ export default function Globe({ apiKey }: GlobeProps) {
       });
 
       setIsLoading(false);
-    });
-
-    // Handle map errors
-    map.current.on('error', (e) => {
-      console.warn('Map error:', e.error?.message || 'Unknown error');
     });
 
     // Auto-rotate the globe
@@ -187,7 +185,9 @@ export default function Globe({ apiKey }: GlobeProps) {
         if (map.current.getLayer('satellites-model')) {
           map.current.removeLayer('satellites-model');
         }
-        if (map.current.hasModel('satellite-model')) {
+        // @ts-ignore
+        if (map.current.hasModel && map.current.hasModel('satellite-model')) {
+          // @ts-ignore
           map.current.removeModel('satellite-model');
         }
         if (map.current.getSource('satellites')) {
