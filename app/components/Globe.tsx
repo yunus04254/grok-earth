@@ -9,6 +9,7 @@ import { TweetList } from '@/components/TweetList';
 
 export interface GlobeRef {
   flyToHotspot: (hotspot: Hotspot) => void;
+  resetView: () => void;
 }
 
 interface GlobeProps {
@@ -109,6 +110,19 @@ const Globe = forwardRef<GlobeRef, GlobeProps>(({ apiKey, onHotspotSelect }, ref
           center: [hotspot.lng, hotspot.lat],
           zoom: 8,
           pitch: 45,
+          duration: 2000,
+          essential: true
+        });
+      }
+    },
+    resetView: () => {
+      // Reset to default globe view
+      if (map.current) {
+        map.current.flyTo({
+          center: [0, 20],
+          zoom: 1.5,
+          pitch: 0,
+          bearing: 0,
           duration: 2000,
           essential: true
         });
