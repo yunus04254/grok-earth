@@ -94,6 +94,8 @@ const Globe = forwardRef<GlobeRef, GlobeProps>(({ apiKey, onHotspotSelect }, ref
   const map = useRef<mapboxgl.Map | null>(null);
   const markersRef = useRef<mapboxgl.Marker[]>([]);
   const geCardMarkersRef = useRef<mapboxgl.Marker[]>([]);
+  const clickMarkerRef = useRef<mapboxgl.Marker | null>(null);
+  const clickTweetListRef = useRef<mapboxgl.Marker | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [hotspots, setHotspots] = useState<HotspotsResponse>(FALLBACK_HOTSPOTS);
 
@@ -129,6 +131,18 @@ const Globe = forwardRef<GlobeRef, GlobeProps>(({ apiKey, onHotspotSelect }, ref
       }
     },
     resetView: () => {
+      // Remove click marker if it exists
+      if (clickMarkerRef.current) {
+        clickMarkerRef.current.remove();
+        clickMarkerRef.current = null;
+      }
+      
+      // Remove click tweet list if it exists
+      if (clickTweetListRef.current) {
+        clickTweetListRef.current.remove();
+        clickTweetListRef.current = null;
+      }
+      
       // Reset to default globe view
       if (map.current) {
         map.current.flyTo({
@@ -392,6 +406,123 @@ const Globe = forwardRef<GlobeRef, GlobeProps>(({ apiKey, onHotspotSelect }, ref
     map.current.on('touchstart', () => { userInteracting = true; });
     map.current.on('touchend', () => { userInteracting = false; });
 
+    // Add click handler to fly to any location on the globe
+    map.current.on('click', async (e) => {
+      // Check if click was on a marker (markers have their own click handlers)
+      const features = map.current!.queryRenderedFeatures(e.point);
+      const clickedOnMarker = (e.originalEvent.target as HTMLElement).closest('.pulse-marker');
+      
+      // Only handle click if it wasn't on a marker
+      if (!clickedOnMarker && map.current) {
+        const { lng, lat } = e.lngLat;
+        
+        // Fetch region name using Mapbox reverse geocoding first
+        let locationName = `Location (${lat.toFixed(2)}°, ${lng.toFixed(2)}°)`;
+        try {
+          const response = await fetch(
+            `https://api.mapbox.com/geocoding/v5/mapbox.places/${lng},${lat}.json?access_token=${apiKey}&types=place,region,country`
+          );
+          if (response.ok) {
+            const data = await response.json();
+            if (data.features && data.features.length > 0) {
+              // Prioritize broader regions: place (city) > region (state/province) > country
+              const placeFeature = data.features.find((f: any) => f.place_type?.includes('place'));
+              const regionFeature = data.features.find((f: any) => f.place_type?.includes('region'));
+              const countryFeature = data.features.find((f: any) => f.place_type?.includes('country'));
+              
+              // Use just the text (not full place_name) to avoid long addresses
+              const feature = placeFeature || regionFeature || countryFeature || data.features[0];
+              locationName = feature.text || locationName;
+            }
+          }
+        } catch (error) {
+          console.warn('Failed to fetch location name:', error);
+          // Fall back to coordinates if geocoding fails
+        }
+        
+        // Remove previous click marker if it exists
+        if (clickMarkerRef.current) {
+          clickMarkerRef.current.remove();
+        }
+        
+        // Remove previous click tweet list if it exists
+        if (clickTweetListRef.current) {
+          clickTweetListRef.current.remove();
+        }
+        
+        // Create red pinpoint marker element
+        const pinElement = document.createElement('div');
+        pinElement.className = 'click-pinpoint';
+        pinElement.innerHTML = `
+          <div style="
+            width: 16px;
+            height: 16px;
+            background: radial-gradient(circle, #ff3333, #cc0000);
+            border: 2px solid #ffffff;
+            border-radius: 50%;
+            box-shadow: 0 0 12px rgba(255, 51, 51, 0.8), 0 2px 4px rgba(0, 0, 0, 0.3);
+            cursor: pointer;
+          "></div>
+        `;
+        
+        // Add new click marker
+        clickMarkerRef.current = new mapboxgl.Marker({
+          element: pinElement,
+          anchor: 'center'
+        })
+          .setLngLat([lng, lat])
+          .addTo(map.current);
+        
+        // Create and add TweetList marker for the clicked location
+        const tweetListElement = document.createElement('div');
+        tweetListElement.style.width = '200px';
+        tweetListElement.style.pointerEvents = 'auto';
+        tweetListElement.style.fontSize = '0.75rem';
+        tweetListElement.style.transform = 'scale(0.9)';
+        tweetListElement.style.transformOrigin = 'bottom left';
+
+        const root = createRoot(tweetListElement);
+        root.render(
+          <TweetList
+            region={locationName}
+            maxTweets={1}
+            autoRotate={true}
+          />
+        );
+        
+        clickTweetListRef.current = new mapboxgl.Marker({
+          element: tweetListElement,
+          anchor: 'bottom-left',
+          offset: [10, -10]
+        })
+          .setLngLat([lng, lat])
+          .addTo(map.current);
+        
+        // Create a temporary hotspot object for the clicked location
+        const tempHotspot: Hotspot = {
+          name: locationName,
+          lat,
+          lng,
+          volume: 0,
+          type: 'red'
+        };
+        
+        // Notify parent if callback exists
+        if (onHotspotSelect) {
+          onHotspotSelect(tempHotspot);
+        }
+        
+        // Fly to the clicked location
+        map.current.flyTo({
+          center: [lng, lat],
+          zoom: 8,
+          pitch: 45,
+          duration: 2000,
+          essential: true
+        });
+      }
+    });
+
     const spinInterval = setInterval(spinGlobe, 100);
 
     return () => {
@@ -400,6 +531,14 @@ const Globe = forwardRef<GlobeRef, GlobeProps>(({ apiKey, onHotspotSelect }, ref
       markersRef.current = [];
       geCardMarkersRef.current.forEach(marker => marker.remove());
       geCardMarkersRef.current = [];
+      if (clickMarkerRef.current) {
+        clickMarkerRef.current.remove();
+        clickMarkerRef.current = null;
+      }
+      if (clickTweetListRef.current) {
+        clickTweetListRef.current.remove();
+        clickTweetListRef.current = null;
+      }
 
       if (map.current) {
         try {

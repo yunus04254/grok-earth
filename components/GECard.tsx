@@ -20,8 +20,8 @@ export interface GECardProps extends React.HTMLAttributes<HTMLDivElement> {
 
 const GECard = React.forwardRef<HTMLDivElement, GECardProps>(
   ({ className, children, icon, title, live, onClose, onExpand, maxHeight, region, showControls = true, ...props }, ref) => {
-    const maxHeightStyle = maxHeight 
-      ? typeof maxHeight === 'number' 
+    const maxHeightStyle = maxHeight
+      ? typeof maxHeight === 'number'
         ? { maxHeight: `${maxHeight}px` }
         : { maxHeight }
       : undefined;
@@ -31,14 +31,14 @@ const GECard = React.forwardRef<HTMLDivElement, GECardProps>(
         ref={ref}
         className={cn(
           // Foundational styling - Palantir-esque gunmetal dark gray aesthetic
-          // Background: dark blue-gray gradient with subtle transparency
-          "bg-gradient-to-br from-[#1a1d24]/95 via-[#1f2532]/95 to-[#1a1f2e]/95 backdrop-blur-sm",
+          // Background: dark blue-gray gradient with subtle transparency - UNIFIED GLASS STYLE
+          "bg-gradient-to-br from-[#1a1d24]/40 via-[#1f2532]/35 to-[#1a1f2e]/40 backdrop-blur-xl backdrop-saturate-150",
           // Border: subtle gunmetal border with slight glow
-          "border border-[#2a2f3a]/60",
+          "border-2 border-[#2a2f3a]/40",
           // Border radius: more rounded for sleek, modern feel
           "rounded-2xl",
           // Shadow: deep, floating card effect with multiple layers
-          "shadow-[0_8px_32px_rgba(0,0,0,0.4),0_2px_8px_rgba(0,0,0,0.2)]",
+          "shadow-[0_0_0_1px_rgba(255,255,255,0.08),inset_0_1px_0_0_rgba(255,255,255,0.1),0_8px_40px_rgba(0,0,0,0.5),0_4px_16px_rgba(0,0,0,0.3)]",
           // Subtle hover effect for interactivity
           "transition-all duration-200",
           "relative",
@@ -86,7 +86,7 @@ const GECard = React.forwardRef<HTMLDivElement, GECardProps>(
 
         {/* Body content - flexible and lenient */}
         {(children || region) && (
-          <div 
+          <div
             className={cn(
               (icon || title || live) ? "px-6 pt-4" : "px-6 pt-6",
               "ge-card-content",
