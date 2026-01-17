@@ -116,11 +116,11 @@ export default function GrokImagine({ onClose, city }: GrokImagineProps) {
   return (
     <>
       <motion.div
-        initial={{ opacity: 0, x: -20 }}
+        initial={{ opacity: 0, x: 20 }}
         animate={{ opacity: 1, x: 0 }}
-        exit={{ opacity: 0, x: -20 }}
+        exit={{ opacity: 0, x: 20 }}
         transition={{ duration: 0.2, ease: 'easeOut' }}
-        className="fixed left-6 top-[420px] z-40 w-[420px] max-h-[calc(100vh-500px)]"
+        className="fixed right-6 top-[80px] z-40 w-[420px] max-h-[calc(100vh-260px)]"
       >
         <GECard
           icon={<Wand2 className="w-5 h-5" />}
@@ -163,13 +163,10 @@ export default function GrokImagine({ onClose, city }: GrokImagineProps) {
                   <Sparkles className="absolute inset-0 m-auto w-6 h-6 text-[#22d3ee] animate-pulse" />
                 </div>
                 <p className="text-[#9ca3af] text-sm font-medium">
-                  Searching for viral memes worldwide...
+                  Generating meme...
                 </p>
                 <p className="text-xs text-[#6b7280]">
-                  Creating 3 hilarious memes about {city}
-                </p>
-                <p className="text-xs text-[#4b5563] mt-1">
-                  Using current trending formats
+                  Creating a hilarious meme about {city}
                 </p>
               </div>
             )}

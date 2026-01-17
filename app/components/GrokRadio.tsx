@@ -432,7 +432,7 @@ export default function GrokRadio({ onClose, city }: GrokRadioProps) {
 
   return (
     <motion.div 
-      className="fixed left-[440px] top-24 z-40 w-[340px] max-h-[calc(100vh-280px)]"
+      className="fixed left-[200px] top-[850px] z-40 w-[420px] max-h-[calc(100vh-900px)]"
       initial={{ opacity: 0, y: -20 }}
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, y: -20 }}
@@ -507,6 +507,13 @@ export default function GrokRadio({ onClose, city }: GrokRadioProps) {
                     </div>
                   </div>
                   <div className="flex items-center gap-2">
+                    {/* Mute */}
+                    <button
+                      onClick={() => setIsMuted(!isMuted)}
+                      className="p-3 rounded-full hover:bg-[#2a2f3a]/40 transition-colors"
+                    >
+                      {isMuted ? <VolumeX className="w-5 h-5 text-[#6b7280]" /> : <Volume2 className="w-5 h-5 text-emerald-400" />}
+                    </button>
                     {/* Call In / End Call Button */}
                     {mode === 'radio' ? (
                       <button
@@ -525,13 +532,6 @@ export default function GrokRadio({ onClose, city }: GrokRadioProps) {
                         <span className="text-sm font-medium">End Call</span>
                       </button>
                     )}
-                    {/* Mute */}
-                    <button
-                      onClick={() => setIsMuted(!isMuted)}
-                      className="p-3 rounded-full hover:bg-[#2a2f3a]/40 transition-colors"
-                    >
-                      {isMuted ? <VolumeX className="w-5 h-5 text-[#6b7280]" /> : <Volume2 className="w-5 h-5 text-emerald-400" />}
-                    </button>
                   </div>
                 </div>
 

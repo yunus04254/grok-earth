@@ -200,8 +200,8 @@ export default function ClientHome({ apiKey }: ClientHomeProps) {
       />
       <MarkerKey />
 
-      {/* City Trends Card */}
-      <AnimatePresence>
+      {/* City Trends Card - Hidden */}
+      {/* <AnimatePresence>
         {selectedHotspot && (
           <CityTrendsCard
             hotspot={selectedHotspot}
@@ -209,7 +209,7 @@ export default function ClientHome({ apiKey }: ClientHomeProps) {
             key="city-trends-card"
           />
         )}
-      </AnimatePresence>
+      </AnimatePresence> */}
 
       {/* Grokipedia - opens when a marker is clicked */}
       <AnimatePresence>

@@ -149,7 +149,7 @@ export default function OverviewCard({ data, isLoading = false, onClose, onExpan
   if (isLoading || !data) {
     return (
       <motion.div 
-        className="fixed left-[800px] top-24 z-40 w-[340px] max-h-[calc(100vh-280px)]"
+        className="fixed left-[700px] top-24 z-40 w-[340px] max-h-[calc(100vh-280px)]"
         initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}
         exit={{ opacity: 0, y: -20 }}
@@ -224,7 +224,7 @@ export default function OverviewCard({ data, isLoading = false, onClose, onExpan
 
   return (
     <motion.div 
-      className="fixed left-[800px] top-24 z-40 w-[340px] max-h-[calc(100vh-280px)]"
+      className="fixed left-[700px] top-24 z-40 w-[340px] max-h-[calc(100vh-280px)]"
       initial={{ opacity: 0, y: -20 }}
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, y: -20 }}
