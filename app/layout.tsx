@@ -14,8 +14,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Grok Earth - Interactive 3D Globe",
-  description: "Interactive 3D globe visualization with satellites powered by Mapbox GL JS",
+  title: "Grok Earth",
+  description: "Mission control powered by Grok",
 };
 
 export default function RootLayout({

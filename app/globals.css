@@ -27,7 +27,6 @@ body {
   background: var(--x-black);
   color: var(--x-gray-100);
   font-family: var(--font-sans), Arial, Helvetica, sans-serif;
-  overflow: hidden;
 }
 
 /* Sidebar Panel - Edge connected, wrapped around icons, curves toward left edge */
@@ -218,4 +217,20 @@ body,
 /* Remove any box shadows that might appear blue */
 * {
   --tw-shadow-color: transparent;
+}
+
+/* Tweet slide up animation */
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.tweet-slide-up {
+  animation: slideUp 0.7s ease-in-out;
 }

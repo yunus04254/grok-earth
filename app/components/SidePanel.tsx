@@ -1,7 +1,6 @@
 'use client';
 
-import React from 'react';
-import { GETooltip, GETooltipProvider } from '@/components/GETooltip';
+import React, { useState } from 'react';
 
 // Icons representing the 6 features
 function TweetsIcon() {
@@ -78,17 +77,18 @@ export default function SidePanel({ onGrokipediaClick, onGrokRadioClick }: SideP
         { icon: PodcastIcon, label: 'Podcast' },
         { icon: RadioIcon, label: 'Grok Radio', onClick: onGrokRadioClick },
         { icon: GrokipediaIcon, label: 'Grokipedia', onClick: onGrokipediaClick },
-        { icon: PredictionMarketsIcon, label: 'Local Prediction Markets' },
-        { icon: StarlinkIcon, label: 'Starlink Satellites' },
+        { icon: PredictionMarketsIcon, label: 'Prediction Markets' },
+        { icon: StarlinkIcon, label: 'Starlink' },
     ];
+
     const iconSize = 40;
     const iconGap = 10;
     const totalIconsHeight = ICON_ITEMS.length * iconSize + (ICON_ITEMS.length - 1) * iconGap;
     const paddingY = 18;
     const paddingLeft = 14;
-    const paddingRight = 10; // Decreased right padding
+    const paddingRight = 10;
     const curveHeight = 30;
-    const cornerRadius = 24; // Larger rounded corners on the right
+    const cornerRadius = 24;
     const totalHeight = totalIconsHeight + (paddingY * 2) + (curveHeight * 2);
     const panelWidth = 60;
 
@@ -101,7 +101,7 @@ export default function SidePanel({ onGrokipediaClick, onGrokRadioClick }: SideP
                 height: totalHeight
             }}
         >
-            {/* SVG background - ends flush with viewport edge (no protrusion) */}
+            {/* SVG background - stays fixed width */}
             <svg
                 className="absolute overflow-visible"
                 width={panelWidth}
@@ -115,10 +115,6 @@ export default function SidePanel({ onGrokipediaClick, onGrokRadioClick }: SideP
                         <stop offset="100%" stopColor="rgba(15, 20, 25, 0.88)" />
                     </linearGradient>
                 </defs>
-                {/* 
-                    Shape: Ends touch viewport edge (starts at x=0), smooth curves, 
-                    larger rounded corners on right side
-                */}
                 <path
                     d={`
                         M0,0 
@@ -138,31 +134,78 @@ export default function SidePanel({ onGrokipediaClick, onGrokRadioClick }: SideP
             </svg>
 
             {/* Icons container */}
-            <GETooltipProvider>
-                <div
-                    className="relative flex flex-col items-center justify-center h-full"
-                    style={{
-                        paddingTop: curveHeight + paddingY,
-                        paddingBottom: curveHeight + paddingY,
-                        paddingLeft: paddingLeft,
-                        paddingRight: paddingRight,
-                        gap: iconGap
-                    }}
-                >
-                    {ICON_ITEMS.map((item) => (
-                        <GETooltip key={item.label} content={item.label} side="right">
-                            <button
-                                className="icon-button"
-                                style={{ width: iconSize, height: iconSize }}
-                                onClick={item.onClick}
-                                disabled={!item.onClick}
+            <div
+                className="relative flex flex-col items-center justify-center h-full"
+                style={{
+                    paddingTop: curveHeight + paddingY,
+                    paddingBottom: curveHeight + paddingY,
+                    paddingLeft: paddingLeft,
+                    paddingRight: paddingRight,
+                    gap: iconGap
+                }}
+            >
+                {ICON_ITEMS.map((item, index) => (
+                    <div
+                        key={item.label}
+                        className="relative"
+                        onMouseEnter={() => setHoveredIndex(index)}
+                        onMouseLeave={() => setHoveredIndex(null)}
+                    >
+                        {/* Icon button */}
+                        <button
+                            className="icon-button relative z-10"
+                            style={{
+                                width: iconSize,
+                                height: iconSize,
+                                transform: hoveredIndex === index ? 'scale(1.15)' : 'scale(1)',
+                                transition: 'transform 0.15s ease-out',
+                            }}
+                            onClick={item.onClick}
+                            disabled={!item.onClick}
+                        >
+                            <item.icon />
+                        </button>
+
+                        {/* Connected tooltip - extends from sidebar */}
+                        <div
+                            className="absolute flex items-center pointer-events-none"
+                            style={{
+                                left: 0,
+                                top: 0,
+                                height: iconSize,
+                                paddingLeft: iconSize + 8,
+                                paddingRight: hoveredIndex === index ? 16 : 0,
+                                background: 'rgba(15, 20, 25, 0.98)',
+                                // Rounded only on right side
+                                borderRadius: '0 20px 20px 0',
+                                // No border on left to blend with sidebar
+                                borderTop: 'none',
+                                borderBottom: 'none',
+                                borderLeft: 'none',
+                                borderRight: hoveredIndex === index ? '1px solid rgba(47, 51, 54, 0.6)' : 'none',
+                                width: hoveredIndex === index ? 'auto' : iconSize,
+                                minWidth: iconSize,
+                                opacity: hoveredIndex === index ? 1 : 0,
+                                transition: 'all 0.2s cubic-bezier(0.4, 0, 0.2, 1)',
+                                zIndex: 5,
+                            }}
+                        >
+                            {/* Label */}
+                            <span
+                                className="text-sm font-medium text-white whitespace-nowrap"
+                                style={{
+                                    opacity: hoveredIndex === index ? 1 : 0,
+                                    transition: hoveredIndex === index
+                                        ? 'opacity 0.15s ease-out 0.1s'
+                                        : 'opacity 0.15s ease-out 0s',
+                                }}
                             >
-                                <item.icon />
-                            </button>
-                        </GETooltip>
-                    ))}
-                </div>
-            </GETooltipProvider>
+                                {item.label}
+                            </span>
+                        </div>
+                    </div>
+                ))}
+            </div>
         </div>
     );
 }
