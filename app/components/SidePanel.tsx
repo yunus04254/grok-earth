@@ -77,7 +77,7 @@ interface SidePanelProps {
     onTogglePredictionMarkets?: () => void;
 }
 
-export default function SidePanel({ 
+export default function SidePanel({
     hasCity = false,
     showGrokipedia = false,
     showGrokRadio = false,
@@ -87,28 +87,28 @@ export default function SidePanel({
     onTogglePredictionMarkets,
 }: SidePanelProps) {
     const [hoveredIndex, setHoveredIndex] = useState<number | null>(null);
-    
+
     const ICON_ITEMS: IconItem[] = [
         { icon: TweetsIcon, label: 'Tweets' },
         { icon: LiveSpacesIcon, label: 'X Live Spaces' },
         { icon: PodcastIcon, label: 'Podcast' },
-        { 
-            icon: RadioIcon, 
-            label: 'Grok Radio', 
+        {
+            icon: RadioIcon,
+            label: 'Grok Radio',
             onClick: hasCity ? onToggleGrokRadio : undefined,
             isActive: hasCity && showGrokRadio,
             activeColor: 'emerald'
         },
-        { 
-            icon: GrokipediaIcon, 
-            label: 'Grokipedia', 
+        {
+            icon: GrokipediaIcon,
+            label: 'Grokipedia',
             onClick: hasCity ? onToggleGrokipedia : undefined,
             isActive: hasCity && showGrokipedia,
             activeColor: 'blue'
         },
-        { 
-            icon: PredictionMarketsIcon, 
-            label: 'Prediction Markets', 
+        {
+            icon: PredictionMarketsIcon,
+            label: 'Prediction Markets',
             onClick: hasCity ? onTogglePredictionMarkets : undefined,
             isActive: hasCity && showPredictionMarkets,
             activeColor: 'purple'
@@ -166,8 +166,8 @@ export default function SidePanel({
             >
                 <defs>
                     <linearGradient id="sidebarGradient" x1="0%" y1="0%" x2="100%" y2="0%">
-                        <stop offset="0%" stopColor="rgba(15, 20, 25, 0.98)" />
-                        <stop offset="100%" stopColor="rgba(15, 20, 25, 0.88)" />
+                        <stop offset="0%" stopColor="rgba(26, 29, 36, 0.4)" />
+                        <stop offset="100%" stopColor="rgba(26, 31, 46, 0.4)" />
                     </linearGradient>
                 </defs>
                 <path
@@ -183,8 +183,8 @@ export default function SidePanel({
                         Z
                     `}
                     fill="url(#sidebarGradient)"
-                    stroke="rgba(47, 51, 54, 0.6)"
-                    strokeWidth="1"
+                    stroke="rgba(42, 47, 58, 0.6)"
+                    strokeWidth="2"
                 />
             </svg>
 
@@ -208,9 +208,8 @@ export default function SidePanel({
                     >
                         {/* Icon button */}
                         <button
-                            className={`icon-button relative z-10 rounded-xl transition-all duration-200 ${
-                                item.isActive ? 'ring-1 ring-white/20' : ''
-                            } ${!item.onClick && hasCity ? 'opacity-40' : ''}`}
+                            className={`icon-button relative z-10 rounded-xl transition-all duration-200 ${item.isActive ? 'ring-1 ring-white/20' : ''
+                                } ${!item.onClick && hasCity ? 'opacity-40' : ''}`}
                             style={{
                                 width: iconSize,
                                 height: iconSize,

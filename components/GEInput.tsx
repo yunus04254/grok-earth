@@ -78,8 +78,8 @@ function useTypingEffect(
 }
 
 const GEInput = React.forwardRef<HTMLInputElement, GEInputProps>(
-  ({ 
-    className, 
+  ({
+    className,
     autoType = false,
     typingTexts = [
       "What's happening in Venezuela?",
@@ -98,17 +98,17 @@ const GEInput = React.forwardRef<HTMLInputElement, GEInputProps>(
     onChange,
     onFocus,
     onKeyDown,
-    ...props 
+    ...props
   }, ref) => {
     const [isMounted, setIsMounted] = React.useState(false);
     const [isFocused, setIsFocused] = React.useState(false);
     const [isUserTyping, setIsUserTyping] = React.useState(false);
-    
+
     // Only start typing effect after component is mounted (client-side)
     React.useEffect(() => {
       setIsMounted(true);
     }, []);
-    
+
     const typingEffect = useTypingEffect(
       isMounted && autoType && !isFocused && !isUserTyping ? typingTexts : [],
       typingSpeed,
@@ -117,7 +117,7 @@ const GEInput = React.forwardRef<HTMLInputElement, GEInputProps>(
       loop,
       !isMounted || isFocused || isUserTyping
     );
-    
+
     const [inputValue, setInputValue] = React.useState("");
     const inputRef = React.useRef<HTMLInputElement>(null);
     const combinedRef = React.useMemo(() => {
@@ -196,12 +196,12 @@ const GEInput = React.forwardRef<HTMLInputElement, GEInputProps>(
           className={cn(
             // Foundational styling - Palantir-esque gunmetal dark gray aesthetic
             // Background: liquid glass effect with transparency and backdrop blur
-            "bg-gradient-to-br from-[#1a1d24]/85 via-[#1f2532]/80 to-[#1a1f2e]/85",
+            "bg-gradient-to-br from-[#1a1d24]/60 via-[#1f2532]/55 to-[#1a1f2e]/60",
             "backdrop-blur-xl backdrop-saturate-150",
             // Border: more prominent border with subtle glow
             // Error state: subtle amber/orange tint on border (not red/fatal)
-            error 
-              ? "border-2 border-amber-500/40" 
+            error
+              ? "border-2 border-amber-500/40"
               : "border-2 border-[#2a2f3a]/60",
             // Border radius: more rounded for sleek, modern feel
             "rounded-2xl",

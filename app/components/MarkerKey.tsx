@@ -4,7 +4,7 @@ import React from 'react';
 
 export default function MarkerKey() {
     return (
-        <div className="fixed bottom-6 right-6 z-20 glass-panel rounded-xl p-4 flex flex-col gap-3 min-w-[200px]">
+        <div className="fixed bottom-6 right-6 z-20 rounded-2xl p-4 flex flex-col gap-3 min-w-[200px] bg-gradient-to-br from-[#1a1d24]/40 via-[#1f2532]/35 to-[#1a1f2e]/40 backdrop-blur-xl backdrop-saturate-150 border-2 border-[#2a2f3a]/40 shadow-[0_0_0_1px_rgba(255,255,255,0.05),inset_0_1px_0_0_rgba(255,255,255,0.05),0_8px_40px_rgba(0,0,0,0.4),0_4px_16px_rgba(0,0,0,0.2)]">
             <div className="text-xs font-mono text-gray-500 uppercase tracking-widest mb-1">
                 Live Activity
             </div>

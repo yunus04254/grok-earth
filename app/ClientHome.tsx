@@ -22,12 +22,12 @@ interface ClientHomeProps {
 export default function ClientHome({ apiKey }: ClientHomeProps) {
   const [selectedHotspot, setSelectedHotspot] = useState<Hotspot | null>(null);
   const [selectedCity, setSelectedCity] = useState<string | null>(null);
-  
+
   // Panel visibility states
   const [showGrokipedia, setShowGrokipedia] = useState(true);
   const [showGrokRadio, setShowGrokRadio] = useState(true);
   const [showPredictionMarkets, setShowPredictionMarkets] = useState(true);
-  
+
   const globeRef = useRef<GlobeRef>(null);
 
   // Handle hotspot selection - opens all panels for the city
@@ -89,10 +89,10 @@ export default function ClientHome({ apiKey }: ClientHomeProps) {
       {/* Grokipedia - opens when a marker is clicked */}
       <AnimatePresence>
         {selectedCity && showGrokipedia && (
-          <Grokipedia 
+          <Grokipedia
             key={`grokipedia-${selectedCity}`}
-            city={selectedCity} 
-            onClose={() => setShowGrokipedia(false)} 
+            city={selectedCity}
+            onClose={() => setShowGrokipedia(false)}
           />
         )}
       </AnimatePresence>
@@ -100,10 +100,10 @@ export default function ClientHome({ apiKey }: ClientHomeProps) {
       {/* Grok Radio - opens when a marker is clicked */}
       <AnimatePresence>
         {selectedCity && showGrokRadio && (
-          <GrokRadio 
+          <GrokRadio
             key={`radio-${selectedCity}`}
             city={selectedCity}
-            onClose={() => setShowGrokRadio(false)} 
+            onClose={() => setShowGrokRadio(false)}
           />
         )}
       </AnimatePresence>
@@ -111,10 +111,10 @@ export default function ClientHome({ apiKey }: ClientHomeProps) {
       {/* Prediction Markets - opens when a marker is clicked */}
       <AnimatePresence>
         {selectedCity && showPredictionMarkets && (
-          <PredictionMarkets 
+          <PredictionMarkets
             key={`markets-${selectedCity}`}
             city={selectedCity}
-            onClose={() => setShowPredictionMarkets(false)} 
+            onClose={() => setShowPredictionMarkets(false)}
           />
         )}
       </AnimatePresence>
@@ -134,15 +134,15 @@ export default function ClientHome({ apiKey }: ClientHomeProps) {
       {/* Globe Reset Button - Bottom Left */}
       <button
         onClick={handleResetView}
-        className="fixed bottom-8 left-6 z-30 group"
+        className="fixed bottom-8 left-[2px] z-30 group"
         aria-label="Reset to globe view"
       >
         <div className="relative">
           {/* Button container with glass effect */}
-          <div className="flex items-center justify-center w-14 h-14 rounded-2xl bg-gradient-to-br from-[#1a1d24]/95 via-[#1f2532]/95 to-[#1a1f2e]/95 backdrop-blur-xl border border-[#2a2f3a]/60 shadow-[0_8px_32px_rgba(0,0,0,0.4),0_2px_8px_rgba(0,0,0,0.2)] transition-all duration-300 group-hover:scale-110 group-hover:border-[#60a5fa]/60 group-hover:shadow-[0_8px_32px_rgba(96,165,250,0.3),0_2px_8px_rgba(0,0,0,0.2)] active:scale-95">
-            <GlobeIcon className="w-6 h-6 text-[#9ca3af] group-hover:text-[#60a5fa] transition-colors duration-300" />
+          <div className="flex items-center justify-center w-14 h-14 rounded-2xl bg-gradient-to-br from-[#1a1d24]/40 via-[#1f2532]/35 to-[#1a1f2e]/40 backdrop-blur-xl backdrop-saturate-150 border-2 border-[#2a2f3a]/40 shadow-[0_0_0_1px_rgba(255,255,255,0.05),inset_0_1px_0_0_rgba(255,255,255,0.05),0_8px_40px_rgba(0,0,0,0.4),0_4px_16px_rgba(0,0,0,0.2)] transition-all duration-300 group-hover:scale-110 group-hover:border-[#60a5fa]/60 group-hover:shadow-[0_8px_32px_rgba(96,165,250,0.3),0_2px_8px_rgba(0,0,0,0.2)] active:scale-95">
+            <GlobeIcon className="w-6 h-6 text-[#e7e9ea] group-hover:text-white transition-colors duration-300" />
           </div>
-          
+
           {/* Tooltip */}
           <div className="absolute left-full ml-3 top-1/2 -translate-y-1/2 pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity duration-200 whitespace-nowrap">
             <div className="px-3 py-2 rounded-lg bg-[#1a1d24]/95 border border-[#2a2f3a]/60 backdrop-blur-xl shadow-lg">
