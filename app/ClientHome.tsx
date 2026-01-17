@@ -4,6 +4,7 @@ import { useState } from 'react';
 import Image from 'next/image';
 import Globe from './components/Globe';
 import SidePanel from './components/SidePanel';
+import MarkerKey from './components/MarkerKey';
 import Grokipedia from './components/Grokipedia';
 import GrokEarthLogo from './assets/GrokEarth.png';
 import { GEInput } from '@/components/GEInput';
@@ -19,6 +20,7 @@ export default function ClientHome({ apiKey }: ClientHomeProps) {
     <main className="w-full h-screen relative">
       <Globe apiKey={apiKey} />
       <SidePanel onGrokipediaClick={() => setShowGrokipedia(true)} />
+      <MarkerKey />
       {showGrokipedia && (
         <Grokipedia onClose={() => setShowGrokipedia(false)} />
       )}
