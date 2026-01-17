@@ -1,5 +1,8 @@
 'use client';
 
+import React from 'react';
+import { GETooltip, GETooltipProvider } from '@/components/GETooltip';
+
 // Icons representing the 6 features
 function TweetsIcon() {
     return (
@@ -50,7 +53,7 @@ function StarlinkIcon() {
 }
 
 interface IconItem {
-    icon: () => JSX.Element;
+    icon: () => React.ReactElement;
     label: string;
     onClick?: () => void;
 }
@@ -125,29 +128,31 @@ export default function SidePanel({ onGrokipediaClick }: SidePanelProps) {
             </svg>
 
             {/* Icons container */}
-            <div
-                className="relative flex flex-col items-center justify-center h-full"
-                style={{
-                    paddingTop: curveHeight + paddingY,
-                    paddingBottom: curveHeight + paddingY,
-                    paddingLeft: paddingLeft,
-                    paddingRight: paddingRight,
-                    gap: iconGap
-                }}
-            >
-                {ICON_ITEMS.map((item) => (
-                    <button
-                        key={item.label}
-                        className="icon-button"
-                        title={item.label}
-                        style={{ width: iconSize, height: iconSize }}
-                        onClick={item.onClick}
-                        disabled={!item.onClick}
-                    >
-                        <item.icon />
-                    </button>
-                ))}
-            </div>
+            <GETooltipProvider>
+                <div
+                    className="relative flex flex-col items-center justify-center h-full"
+                    style={{
+                        paddingTop: curveHeight + paddingY,
+                        paddingBottom: curveHeight + paddingY,
+                        paddingLeft: paddingLeft,
+                        paddingRight: paddingRight,
+                        gap: iconGap
+                    }}
+                >
+                    {ICON_ITEMS.map((item) => (
+                        <GETooltip key={item.label} content={item.label} side="right">
+                            <button
+                                className="icon-button"
+                                style={{ width: iconSize, height: iconSize }}
+                                onClick={item.onClick}
+                                disabled={!item.onClick}
+                            >
+                                <item.icon />
+                            </button>
+                        </GETooltip>
+                    ))}
+                </div>
+            </GETooltipProvider>
         </div>
     );
 }

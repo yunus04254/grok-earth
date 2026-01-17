@@ -11,6 +11,7 @@
   "dependencies": {
     "@ai-sdk/react": "^3.0.41",
     "@ai-sdk/xai": "^3.0.26",
+    "@radix-ui/react-tooltip": "^1.2.8",
     "@types/mapbox-gl": "^3.4.1",
     "ai": "^6.0.39",
     "clsx": "^2.1.1",
