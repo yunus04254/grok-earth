@@ -389,26 +389,35 @@ const Globe = forwardRef<GlobeRef, GlobeProps>(({ apiKey, onHotspotSelect }, ref
       geCardMarkersRef.current = [];
 
       if (map.current) {
-        if (map.current.getLayer('trending-heatmap')) {
-          map.current.removeLayer('trending-heatmap');
+        try {
+          // Only attempt cleanup if the map style is loaded and valid
+          const style = map.current.getStyle();
+          if (style) {
+            if (map.current.getLayer('trending-heatmap')) {
+              map.current.removeLayer('trending-heatmap');
+            }
+            if (map.current.getSource('heatmap-data')) {
+              map.current.removeSource('heatmap-data');
+            }
+            if (map.current.getLayer('satellites-model')) {
+              map.current.removeLayer('satellites-model');
+            }
+            // @ts-ignore
+            if (map.current.hasModel && map.current.hasModel('satellite-model')) {
+              // @ts-ignore
+              map.current.removeModel('satellite-model');
+            }
+            if (map.current.getSource('satellites')) {
+              map.current.removeSource('satellites');
+            }
+          }
+        } catch (e) {
+          // Map may already be in an invalid state during cleanup, ignore errors
+          console.warn('Map cleanup warning:', e);
         }
-        if (map.current.getSource('heatmap-data')) {
-          map.current.removeSource('heatmap-data');
-        }
-        if (map.current.getLayer('satellites-model')) {
-          map.current.removeLayer('satellites-model');
-        }
-        // @ts-ignore
-        if (map.current.hasModel && map.current.hasModel('satellite-model')) {
-          // @ts-ignore
-          map.current.removeModel('satellite-model');
-        }
-        if (map.current.getSource('satellites')) {
-          map.current.removeSource('satellites');
-        }
+        map.current.remove();
+        map.current = null;
       }
-      map.current?.remove();
-      map.current = null;
     };
   }, [apiKey, hotspots, createRedMarker, createGECardMarker]);
 

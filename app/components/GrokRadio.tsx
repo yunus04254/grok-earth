@@ -2,25 +2,25 @@
 
 import React, { useState, useRef, useCallback, useEffect } from 'react';
 import { GECard } from '@/components/GECard';
-import { GEInput } from '@/components/GEInput';
-import { Radio, Play, Square, Volume2, VolumeX, Loader2, Phone, PhoneOff } from 'lucide-react';
+import { Radio, Play, Square, Volume2, VolumeX, Loader2, Phone, PhoneOff, MapPin } from 'lucide-react';
+import { motion } from 'framer-motion';
 
 interface GrokRadioProps {
   onClose: () => void;
+  city: string;
 }
 
 type Mode = 'idle' | 'radio' | 'call';
 type ConnectionStatus = 'disconnected' | 'connecting' | 'connected' | 'streaming';
 
-export default function GrokRadio({ onClose }: GrokRadioProps) {
-  const [city, setCity] = useState('');
+export default function GrokRadio({ onClose, city }: GrokRadioProps) {
   const [mode, setMode] = useState<Mode>('idle');
   const [status, setStatus] = useState<ConnectionStatus>('disconnected');
   const [transcript, setTranscript] = useState('');
   const [isMuted, setIsMuted] = useState(false);
-  const [currentCity, setCurrentCity] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [isUserSpeaking, setIsUserSpeaking] = useState(false);
+  const hasStarted = useRef(false);
 
   const wsRef = useRef<WebSocket | null>(null);
   const audioContextRef = useRef<AudioContext | null>(null);
@@ -339,10 +339,17 @@ export default function GrokRadio({ onClose }: GrokRadioProps) {
   // Start radio
   const startRadio = useCallback(() => {
     if (!city.trim()) return;
-    setCurrentCity(city);
     setMode('radio');
     connectWebSocket('radio', city);
   }, [city, connectWebSocket]);
+
+  // Auto-start radio when component mounts with a city
+  useEffect(() => {
+    if (city && !hasStarted.current) {
+      hasStarted.current = true;
+      startRadio();
+    }
+  }, [city, startRadio]);
 
   // Switch to call mode
   const callIn = useCallback(() => {
@@ -368,9 +375,9 @@ export default function GrokRadio({ onClose }: GrokRadioProps) {
     // Small delay to ensure cleanup, then connect
     setTimeout(() => {
       isSwitchingModeRef.current = false;
-      connectWebSocket('call', currentCity);
+      connectWebSocket('call', city);
     }, 100);
-  }, [currentCity, connectWebSocket, stopMicrophone, stopAllAudio]);
+  }, [city, connectWebSocket, stopMicrophone, stopAllAudio]);
 
   // End call, go back to radio
   const endCall = useCallback(() => {
@@ -393,9 +400,9 @@ export default function GrokRadio({ onClose }: GrokRadioProps) {
     
     setTimeout(() => {
       isSwitchingModeRef.current = false;
-      connectWebSocket('radio', currentCity);
+      connectWebSocket('radio', city);
     }, 100);
-  }, [currentCity, connectWebSocket, stopMicrophone, stopAllAudio]);
+  }, [city, connectWebSocket, stopMicrophone, stopAllAudio]);
 
   // Stop everything
   const stop = useCallback(() => {
@@ -422,54 +429,51 @@ export default function GrokRadio({ onClose }: GrokRadioProps) {
   const isActive = mode !== 'idle';
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm">
-      <div className="w-full max-w-xl mx-4">
-        <GECard
-          icon={mode === 'call' ? <Phone className="w-6 h-6" /> : <Radio className="w-6 h-6" />}
-          title={mode === 'call' ? 'On Call with Grok' : 'Grok Radio'}
-          live={status === 'streaming'}
-          onClose={() => { stop(); onClose(); }}
-          maxHeight="80vh"
-        >
-          <div className="space-y-6 pb-2">
-            {/* City Input */}
-            <div className="space-y-3">
-              <label className="text-sm font-medium text-[#9ca3af] uppercase tracking-wider">
-                {mode === 'call' ? 'Talking about' : 'Tune into a city'}
-              </label>
-              <div className="flex gap-3">
-                <GEInput
-                  value={city}
-                  onChange={(e) => setCity(e.target.value)}
-                  placeholder="Enter a city name..."
-                  disabled={isActive}
-                  onKeyDown={(e) => {
-                    if (e.key === 'Enter' && !isActive) startRadio();
-                  }}
-                  className="flex-1"
-                />
-                <button
-                  onClick={isActive ? stop : startRadio}
-                  disabled={!city.trim() && !isActive}
-                  className={`
-                    flex items-center justify-center w-14 h-14 rounded-2xl transition-all duration-300 
-                    ${isActive 
-                      ? 'bg-red-500/20 border-2 border-red-500/60 hover:bg-red-500/30 text-red-400' 
-                      : 'bg-emerald-500/20 border-2 border-emerald-500/60 hover:bg-emerald-500/30 text-emerald-400'
-                    }
-                    disabled:opacity-50 disabled:cursor-not-allowed shadow-[0_0_20px_rgba(0,0,0,0.3)]
-                  `}
-                >
-                  {status === 'connecting' ? (
-                    <Loader2 className="w-6 h-6 animate-spin" />
-                  ) : isActive ? (
-                    <Square className="w-5 h-5 fill-current" />
-                  ) : (
-                    <Play className="w-6 h-6 fill-current" />
-                  )}
-                </button>
+    <motion.div 
+      className="fixed left-[440px] top-24 z-40 w-[340px] max-h-[calc(100vh-280px)]"
+      initial={{ opacity: 0, y: -20 }}
+      animate={{ opacity: 1, y: 0 }}
+      exit={{ opacity: 0, y: -20 }}
+      transition={{ duration: 0.2, ease: 'easeOut', delay: 0.1 }}
+    >
+      <GECard
+        icon={mode === 'call' ? <Phone className="w-5 h-5" /> : <Radio className="w-5 h-5" />}
+        title={mode === 'call' ? 'On Call with Grok' : 'Grok Radio'}
+        live={status === 'streaming'}
+        onClose={() => { stop(); onClose(); }}
+        maxHeight={700}
+      >
+        <div className="space-y-4">
+          {/* City Header */}
+          <div className="flex items-center justify-between p-3 bg-emerald-500/10 border border-emerald-500/20 rounded-lg">
+            <div className="flex items-center gap-3">
+              <div className="p-2 bg-emerald-500/20 rounded-full">
+                <MapPin className="w-5 h-5 text-emerald-400" />
+              </div>
+              <div>
+                <p className="text-xs text-[#9ca3af] uppercase tracking-wide">Tuned into</p>
+                <p className="text-lg font-semibold text-[#e5e7eb]">{city}</p>
               </div>
             </div>
+            <button
+              onClick={isActive ? stop : startRadio}
+              className={`
+                flex items-center justify-center w-12 h-12 rounded-xl transition-all duration-300 
+                ${isActive 
+                  ? 'bg-red-500/20 border border-red-500/40 hover:bg-red-500/30 text-red-400' 
+                  : 'bg-emerald-500/20 border border-emerald-500/40 hover:bg-emerald-500/30 text-emerald-400'
+                }
+              `}
+            >
+              {status === 'connecting' ? (
+                <Loader2 className="w-5 h-5 animate-spin" />
+              ) : isActive ? (
+                <Square className="w-4 h-4 fill-current" />
+              ) : (
+                <Play className="w-5 h-5 fill-current" />
+              )}
+            </button>
+          </div>
 
             {/* Active state */}
             {isActive && (
@@ -495,10 +499,10 @@ export default function GrokRadio({ onClose }: GrokRadioProps) {
                       )}
                     </div>
                     <div>
-                      <p className="text-sm text-[#6b7280] uppercase tracking-wider">
+                      <p className="text-xs text-[#6b7280] uppercase tracking-wider">
                         {mode === 'call' ? (isUserSpeaking ? 'Listening...' : 'On Call') : 'Now Playing'}
                       </p>
-                      <p className="text-lg font-semibold text-[#e5e7eb]">{currentCity}</p>
+                      <p className="text-base font-semibold text-[#e5e7eb]">{city}</p>
                     </div>
                   </div>
                   <div className="flex items-center gap-2">
@@ -579,18 +583,17 @@ export default function GrokRadio({ onClose }: GrokRadioProps) {
 
             {/* Idle state */}
             {!isActive && !error && (
-              <div className="text-center py-6">
-                <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-[#1a1d24] border border-[#2a2f3a]/60 mb-4">
-                  <Radio className="w-8 h-8 text-[#6b7280]" />
+              <div className="text-center py-4">
+                <div className="inline-flex items-center justify-center w-12 h-12 rounded-full bg-[#1a1d24] border border-[#2a2f3a]/60 mb-3">
+                  <Radio className="w-6 h-6 text-[#6b7280]" />
                 </div>
-                <p className="text-[#9ca3af] text-sm max-w-sm mx-auto">
-                  Enter a city and press play to start the radio. You can call in anytime to have a conversation with Grok!
+                <p className="text-[#9ca3af] text-xs max-w-sm mx-auto">
+                  Press play to start the radio. You can call in anytime to chat with Grok!
                 </p>
               </div>
             )}
           </div>
         </GECard>
-      </div>
-    </div>
+      </motion.div>
   );
 }

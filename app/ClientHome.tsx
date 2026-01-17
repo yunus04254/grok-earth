@@ -5,7 +5,6 @@ import Image from 'next/image';
 import Globe, { GlobeRef } from './components/Globe';
 import SidePanel from './components/SidePanel';
 import { AnimatePresence } from 'framer-motion';
-import Link from 'next/link';
 import MarkerKey from './components/MarkerKey';
 import CityTrendsCard from './components/CityTrendsCard';
 import Grokipedia from './components/Grokipedia';
@@ -20,31 +19,52 @@ interface ClientHomeProps {
 }
 
 export default function ClientHome({ apiKey }: ClientHomeProps) {
-  const [showGrokipedia, setShowGrokipedia] = useState(false);
-  const [showGrokRadio, setShowGrokRadio] = useState(false);
-  const [showPredictionMarkets, setShowPredictionMarkets] = useState(false);
   const [selectedHotspot, setSelectedHotspot] = useState<Hotspot | null>(null);
+  const [selectedCity, setSelectedCity] = useState<string | null>(null);
+  
+  // Panel visibility states
+  const [showGrokipedia, setShowGrokipedia] = useState(true);
+  const [showGrokRadio, setShowGrokRadio] = useState(true);
+  const [showPredictionMarkets, setShowPredictionMarkets] = useState(true);
+  
   const globeRef = useRef<GlobeRef>(null);
 
-  // Example of using the reusable flyTo function:
-  // const handleSearch = (location: string) => {
-  //   // logic to find hotspot...
-  //   if (foundHotspot && globeRef.current) {
-  //     globeRef.current.flyToHotspot(foundHotspot);
-  //   }
-  // }
+  // Handle hotspot selection - opens all panels for the city
+  const handleHotspotSelect = (hotspot: Hotspot | null) => {
+    setSelectedHotspot(hotspot);
+    if (hotspot) {
+      setSelectedCity(hotspot.name);
+      // Reset all panels to visible when selecting a new city
+      setShowGrokipedia(true);
+      setShowGrokRadio(true);
+      setShowPredictionMarkets(true);
+    }
+  };
+
+  // Close all panels and deselect city
+  const handleCloseAll = () => {
+    setSelectedHotspot(null);
+    setSelectedCity(null);
+    setShowGrokipedia(true);
+    setShowGrokRadio(true);
+    setShowPredictionMarkets(true);
+  };
 
   return (
     <main className="w-full h-screen relative">
       <Globe
         ref={globeRef}
         apiKey={apiKey}
-        onHotspotSelect={setSelectedHotspot}
+        onHotspotSelect={handleHotspotSelect}
       />
       <SidePanel
-        onGrokipediaClick={() => setShowGrokipedia(true)}
-        onGrokRadioClick={() => setShowGrokRadio(true)}
-        onPredictionMarketsClick={() => setShowPredictionMarkets(true)}
+        hasCity={!!selectedCity}
+        showGrokipedia={showGrokipedia}
+        showGrokRadio={showGrokRadio}
+        showPredictionMarkets={showPredictionMarkets}
+        onToggleGrokipedia={() => setShowGrokipedia(!showGrokipedia)}
+        onToggleGrokRadio={() => setShowGrokRadio(!showGrokRadio)}
+        onTogglePredictionMarkets={() => setShowPredictionMarkets(!showPredictionMarkets)}
       />
       <MarkerKey />
 
@@ -59,17 +79,38 @@ export default function ClientHome({ apiKey }: ClientHomeProps) {
         )}
       </AnimatePresence>
 
-      {showGrokipedia && (
-        <Grokipedia onClose={() => setShowGrokipedia(false)} />
-      )}
+      {/* Grokipedia - opens when a marker is clicked */}
+      <AnimatePresence>
+        {selectedCity && showGrokipedia && (
+          <Grokipedia 
+            key={`grokipedia-${selectedCity}`}
+            city={selectedCity} 
+            onClose={() => setShowGrokipedia(false)} 
+          />
+        )}
+      </AnimatePresence>
 
-      {showGrokRadio && (
-        <GrokRadio onClose={() => setShowGrokRadio(false)} />
-      )}
+      {/* Grok Radio - opens when a marker is clicked */}
+      <AnimatePresence>
+        {selectedCity && showGrokRadio && (
+          <GrokRadio 
+            key={`radio-${selectedCity}`}
+            city={selectedCity}
+            onClose={() => setShowGrokRadio(false)} 
+          />
+        )}
+      </AnimatePresence>
 
-      {showPredictionMarkets && (
-        <PredictionMarkets onClose={() => setShowPredictionMarkets(false)} />
-      )}
+      {/* Prediction Markets - opens when a marker is clicked */}
+      <AnimatePresence>
+        {selectedCity && showPredictionMarkets && (
+          <PredictionMarkets 
+            key={`markets-${selectedCity}`}
+            city={selectedCity}
+            onClose={() => setShowPredictionMarkets(false)} 
+          />
+        )}
+      </AnimatePresence>
 
       {/* Logo in top left */}
       <div className="fixed top-6 left-6 z-20">
