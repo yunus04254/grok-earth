@@ -27,6 +27,18 @@ body {
   background: var(--x-black);
   color: var(--x-gray-100);
   font-family: var(--font-sans), Arial, Helvetica, sans-serif;
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
+}
+
+/* Scale entire app to 85% */
+.app-scale-wrapper {
+  transform: scale(0.85);
+  transform-origin: top left;
+  width: 117.65vw; /* Compensate for 85% scale (100vw / 0.85 = 117.65vw) */
+  height: 117.65vh; /* Compensate for 85% scale (100vh / 0.85 = 117.65vh) */
+  position: relative;
 }
 
 /* Sidebar Panel - Edge connected, wrapped around icons, curves toward left edge */
@@ -207,6 +219,16 @@ html,
 body,
 #__next {
   background: #000000 !important;
+}
+
+/* Fix viewport sizing for scaling */
+html,
+body {
+  width: 100vw;
+  height: 100vh;
+  overflow: hidden;
+  margin: 0;
+  padding: 0;
 }
 
 /* Override any vignette or glow effects */

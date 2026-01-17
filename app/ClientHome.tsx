@@ -51,7 +51,7 @@ export default function ClientHome({ apiKey }: ClientHomeProps) {
   };
 
   return (
-    <main className="w-full h-screen relative">
+    <main className="w-full relative" style={{ height: '117.65vh' }}>
       <Globe
         ref={globeRef}
         apiKey={apiKey}

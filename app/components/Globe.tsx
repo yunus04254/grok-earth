@@ -422,7 +422,7 @@ const Globe = forwardRef<GlobeRef, GlobeProps>(({ apiKey, onHotspotSelect }, ref
   }, [apiKey, hotspots, createRedMarker, createGECardMarker]);
 
   return (
-    <div className="relative w-full h-screen">
+    <div className="relative w-full" style={{ height: '117.65vh' }}>
       {isLoading && (
         <div className="absolute inset-0 flex items-center justify-center bg-[#0a0a0a] z-10">
           <div className="text-center">
