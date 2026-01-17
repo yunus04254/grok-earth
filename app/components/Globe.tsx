@@ -189,7 +189,7 @@ const Globe = forwardRef<GlobeRef, GlobeProps>(({ apiKey, onHotspotSelect }, ref
     return el;
   }, []);
 
-  // Initialize map and add layers
+  // Initialize map once
   useEffect(() => {
     if (!apiKey) {
       console.error('Mapbox API key is required');
@@ -276,10 +276,10 @@ const Globe = forwardRef<GlobeRef, GlobeProps>(({ apiKey, onHotspotSelect }, ref
         },
       });
 
-      // Add heatmap for BLUE zones (emerging trends)
+      // Add empty heatmap source (will be populated by separate effect)
       map.current.addSource('heatmap-data', {
         type: 'geojson',
-        data: generateHeatmapFeatures(hotspots.blueZones) as any,
+        data: { type: 'FeatureCollection', features: [] } as any,
       });
 
       // Blue heatmap layer for emerging trends
@@ -325,18 +325,6 @@ const Globe = forwardRef<GlobeRef, GlobeProps>(({ apiKey, onHotspotSelect }, ref
           ]
         }
       }, 'satellites-model');
-
-      // Add RED markers for high-volume hotspots
-      hotspots.redHotspots.forEach(hotspot => {
-        const marker = new mapboxgl.Marker({
-          element: createRedMarker(hotspot),
-          anchor: 'center'
-        })
-          .setLngLat([hotspot.lng, hotspot.lat])
-          .addTo(map.current!);
-
-        markersRef.current.push(marker);
-      });
 
       // Add tweet feed markers around the globe
       GECARD_LOCATIONS.forEach(location => {
@@ -419,7 +407,34 @@ const Globe = forwardRef<GlobeRef, GlobeProps>(({ apiKey, onHotspotSelect }, ref
         map.current = null;
       }
     };
-  }, [apiKey, hotspots, createRedMarker, createGECardMarker]);
+  }, [apiKey, createGECardMarker]);
+
+  // Update markers and heatmap when hotspots change (separate effect)
+  useEffect(() => {
+    if (!map.current || isLoading) return;
+
+    // Remove existing red markers
+    markersRef.current.forEach(marker => marker.remove());
+    markersRef.current = [];
+
+    // Add RED markers for high-volume hotspots
+    hotspots.redHotspots.forEach(hotspot => {
+      const marker = new mapboxgl.Marker({
+        element: createRedMarker(hotspot),
+        anchor: 'center'
+      })
+        .setLngLat([hotspot.lng, hotspot.lat])
+        .addTo(map.current!);
+
+      markersRef.current.push(marker);
+    });
+
+    // Update heatmap data
+    const source = map.current.getSource('heatmap-data') as mapboxgl.GeoJSONSource;
+    if (source) {
+      source.setData(generateHeatmapFeatures(hotspots.blueZones) as any);
+    }
+  }, [hotspots, createRedMarker, isLoading]);
 
   return (
     <div className="relative w-full h-screen">
