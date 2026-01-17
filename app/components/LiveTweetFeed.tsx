@@ -19,7 +19,7 @@ export default function LiveTweetFeed({ city, onClose }: LiveTweetFeedProps) {
             animate={{ opacity: 1, x: 0 }}
             exit={{ opacity: 0, x: 20 }}
             transition={{ duration: 0.2, ease: 'easeOut', delay: 0.1 }}
-            className="fixed left-6 bottom-32 z-40 w-[340px] max-h-[calc(100vh-320px)]"
+            className="fixed right-[384px] bottom-32 z-40 w-[340px] max-h-[calc(100vh-320px)]"
         >
             <Card
                 className={cn(
