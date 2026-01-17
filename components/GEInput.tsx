@@ -184,7 +184,9 @@ const GEInput = React.forwardRef<HTMLInputElement, GEInputProps>(
           // Border radius: more rounded for sleek, modern feel
           "rounded-2xl",
           // Text colors - placeholder-like when auto-typing, normal otherwise
-          isAutoTyping ? "text-[#9ca3af] select-none cursor-text" : "text-[#e5e7eb]",
+          // Cursor - always text cursor since it's an input field
+          isAutoTyping ? "text-[#9ca3af] select-none" : "text-[#e5e7eb]",
+          "cursor-text",
           "placeholder:text-[#9ca3af]",
           // Shadow: enhanced floating card effect with liquid glass feel
           "shadow-[0_0_0_1px_rgba(255,255,255,0.08),inset_0_1px_0_0_rgba(255,255,255,0.1),0_8px_40px_rgba(0,0,0,0.5),0_4px_16px_rgba(0,0,0,0.3)]",
