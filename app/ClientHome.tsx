@@ -274,7 +274,7 @@ export default function ClientHome({ apiKey }: ClientHomeProps) {
       {/* Globe Reset Button - Bottom Left */}
       <button
         onClick={handleResetView}
-        className="fixed bottom-8 left-[2px] z-30 group"
+        className="fixed bottom-8 left-6 z-30 group"
         aria-label="Reset to globe view"
       >
         <div className="relative">
