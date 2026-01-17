@@ -78,9 +78,9 @@ export default function Sandbox() {
 
           {/* GEInput Example */}
           <div className="w-full space-y-4 pt-4">
-            <GEInput placeholder="Enter your search query..." />
-            <GEInput type="email" placeholder="Email address" />
-            <GEInput type="password" placeholder="Password" />
+            <GEInput 
+              autoType={true}
+            />
           </div>
         </div>
       </main>
