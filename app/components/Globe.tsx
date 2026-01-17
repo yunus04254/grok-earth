@@ -181,8 +181,13 @@ const Globe = forwardRef<GlobeRef, GlobeProps>(({ apiKey, onHotspotSelect }, ref
     root.render(
       <TweetList
         region={location.region}
+<<<<<<< HEAD
         maxTweets={1} // Single tweet card
         autoRotate={false}
+=======
+        maxTweets={1}
+        autoRotate={true}
+>>>>>>> 2f2569c (cycling preview tweet)
       />
     );
 
