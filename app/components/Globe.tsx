@@ -225,7 +225,7 @@ const Globe = forwardRef<GlobeRef, GlobeProps>(({ apiKey, onHotspotSelect }, ref
     el.title = `${hotspot.name}${hotspot.topTrend ? ` - ${hotspot.topTrend}` : ''}`;
     el.style.cursor = 'pointer';
 
-    el.addEventListener('click', (e) => {
+    el.addEventListener('dblclick', (e) => {
       e.stopPropagation(); // Prevent map click events if any
       if (onHotspotSelect) {
         onHotspotSelect(hotspot);
@@ -483,8 +483,8 @@ const Globe = forwardRef<GlobeRef, GlobeProps>(({ apiKey, onHotspotSelect }, ref
     map.current.on('touchstart', () => { userInteracting = true; });
     map.current.on('touchend', () => { userInteracting = false; });
 
-    // Add click handler for 3D columns
-    map.current.on('click', 'hotspot-columns-3d', (e) => {
+    // Add double-click handler for 3D columns
+    map.current.on('dblclick', 'hotspot-columns-3d', (e) => {
       if (!map.current || !e.features || e.features.length === 0) return;
       
       const feature = e.features[0];
@@ -523,14 +523,14 @@ const Globe = forwardRef<GlobeRef, GlobeProps>(({ apiKey, onHotspotSelect }, ref
       if (map.current) map.current.getCanvas().style.cursor = '';
     });
 
-    // Add click handler to fly to any location on the globe
-    map.current.on('click', async (e) => {
-      // Check if click was on a marker (markers have their own click handlers)
+    // Add double-click handler to fly to any location on the globe
+    map.current.on('dblclick', async (e) => {
+      // Check if double-click was on a marker (markers have their own double-click handlers)
       const features = map.current!.queryRenderedFeatures(e.point);
       const clickedOnMarker = (e.originalEvent.target as HTMLElement).closest('.pulse-marker');
       const clickedOnColumn = features.some(f => f.layer && f.layer.id === 'hotspot-columns-3d');
       
-      // Only handle click if it wasn't on a marker or column
+      // Only handle double-click if it wasn't on a marker or column
       if (!clickedOnMarker && !clickedOnColumn && map.current) {
         const { lng, lat } = e.lngLat;
         
