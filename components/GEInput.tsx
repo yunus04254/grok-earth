@@ -16,6 +16,7 @@ export interface GEInputProps extends React.ComponentProps<"input"> {
   focusRing?: boolean;
   error?: boolean;
   errorMessage?: string;
+  onEnter?: (value: string) => void;
 }
 
 // Custom hook for typing effect
@@ -98,6 +99,7 @@ const GEInput = React.forwardRef<HTMLInputElement, GEInputProps>(
     onChange,
     onFocus,
     onKeyDown,
+    onEnter,
     ...props 
   }, ref) => {
     const [isMounted, setIsMounted] = React.useState(false);
@@ -172,10 +174,15 @@ const GEInput = React.forwardRef<HTMLInputElement, GEInputProps>(
       onChange?.(e);
     };
 
-    // Handle Escape key to unfocus
+    // Handle Escape key to unfocus and Enter key to submit
     const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
       if (e.key === "Escape") {
         inputRef.current?.blur();
+      } else if (e.key === "Enter" && !isAutoTyping && inputValue.trim()) {
+        e.preventDefault();
+        if (onEnter) {
+          onEnter(inputValue.trim());
+        }
       }
       onKeyDown?.(e);
     };

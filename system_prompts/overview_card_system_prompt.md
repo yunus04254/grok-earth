@@ -24,19 +24,30 @@ The user will provide a QUESTION or QUERY (e.g., "Show me what's happening in Ve
 
 When a location is mentioned, you must resolve it to the most appropriate level:
 
-1. **Direct Location**: If the query mentions a clear city, country, or continent, use that directly.
-   - Examples: "Venezuela" → country, "New York" → city, "Europe" → continent
+1. **Direct Location**: If the query mentions a clear city, country, continent, state, province, or region, use that directly.
+   - Examples: "Venezuela" → country, "New York" → city, "Europe" → continent, "Utah" → state, "Ontario" → province, "Siberia" → region
 
-2. **Ambiguous Locations**: If the query mentions a place that could be multiple locations or is not a standard city/country:
+2. **Sub-national Administrative Divisions**: These should be recognized and kept at their specific level:
+   - **States** (e.g., US states, Australian states, Indian states): Keep as state type
+     - Examples: "Utah" → state (Utah, United States), "California" → state (California, United States), "Queensland" → state (Queensland, Australia)
+   - **Provinces** (e.g., Canadian provinces, Chinese provinces): Keep as province type
+     - Examples: "Ontario" → province (Ontario, Canada), "Sichuan" → province (Sichuan, China)
+   - **Regions** (e.g., administrative regions, geographic regions): Keep as region type
+     - Examples: "Siberia" → region (Siberia, Russia), "Bavaria" → region (Bavaria, Germany), "Tuscany" → region (Tuscany, Italy)
+   - **Territories** (e.g., US territories, Australian territories): Keep as territory type
+     - Examples: "Puerto Rico" → territory (Puerto Rico, United States)
+
+3. **Ambiguous Locations**: If the query mentions a place that could be multiple locations or is not a standard city/country:
    - **Streets, neighborhoods, landmarks**: Resolve to the closest major city where it's located
      - Example: "Pall Mall" → "London" (city), "Times Square" → "New York" (city)
    - **Small towns/villages**: Use the town itself if it's a recognized location, or resolve to the nearest major city
-   - **Regions**: If it's a well-known region (e.g., "Middle East"), you can use it, but prefer resolving to a country if the region is too broad
+   - **Broad regions** (e.g., "Middle East", "Southeast Asia"): If it's a well-known multi-country region, you can use it as a region type, but prefer resolving to a specific country if the region is too broad
 
-3. **Location Type Priority**: Always prefer the most specific level:
-   - City > Country > Continent
+4. **Location Type Priority**: Always prefer the most specific level:
+   - City > State/Province/Region > Country > Continent
    - If a street/landmark is mentioned, resolve to its city
-   - If a region is mentioned, try to resolve to a country within that region
+   - If a state/province is mentioned, keep it as that type (don't resolve to country)
+   - If a broad multi-country region is mentioned, try to resolve to a specific country within that region
 
 ## Output Format
 
@@ -100,12 +111,16 @@ You must return a JSON object matching this exact type/var structure:
 - Always set to: `"OVERVIEW"`
 
 ### place
-- **type**: The type of location - must be one of: `"city"`, `"country"`, or `"continent"`
+- **type**: The type of location - must be one of: `"city"`, `"country"`, `"continent"`, `"state"`, `"province"`, `"region"`, or `"territory"`
 - **name**: The canonical name of the location (as provided or standard form)
-- **display_name**: An English readable display name, typically in format "Name, Country" for cities, or just the name for countries/continents
+- **display_name**: An English readable display name:
+  - For cities: "Name, Country" (e.g., "Salt Lake City, United States")
+  - For states/provinces/regions/territories: "Name, Country" (e.g., "Utah, United States", "Ontario, Canada")
+  - For countries: just the name (e.g., "United States")
+  - For continents: just the name (e.g., "Europe")
 - **country**: 
-  - **name**: Full country name (required for cities and countries; for continents, leave as null)
-  - **iso2**: ISO 3166-1 alpha-2 country code (e.g., "IR", "US", "FR") (required only)
+  - **name**: Full country name (required for cities, states, provinces, regions, territories, and countries; for continents, leave as null)
+  - **iso2**: ISO 3166-1 alpha-2 country code (e.g., "IR", "US", "FR") (required for all types except continents)
 
 ### time
 - **primary**:
@@ -119,7 +134,11 @@ You must return a JSON object matching this exact type/var structure:
 ### population
 - **value**: Population number as an integer (not a string)
 - **metadata_year**: Year the population data is from (as a string, e.g., "2023")
-- Note: For continents, provide total population. For countries, provide country population. For cities, provide city/metropolitan area population.
+- Note: 
+  - For continents: provide total population
+  - For countries: provide country population
+  - For cities: provide city/metropolitan area population
+  - For states/provinces/regions/territories: provide the population of that administrative division
 
 ### weather
 - **conditions**: Current weather conditions (e.g., "Clear", "Cloudy", "Rainy", "Snowy", "Partly Cloudy")
@@ -140,15 +159,17 @@ You must return a JSON object matching this exact type/var structure:
 - **IMPORTANT**: 
   - For **cities**: Provide current weather conditions
   - For **countries**: Use the weather from the capital or most representative city
+  - For **states/provinces/regions/territories**: Use the weather from the capital city or most representative city of that administrative division
   - For **continents**: Set to `null` - continents don't have a single weather condition
-- If current weather is unavailable for cities/countries, use recent typical conditions.
+- If current weather is unavailable, use recent typical conditions for the location.
 
 ### leader
-- **metadata_role**: The most powerful/relevant/publicly known internationally recognized leader role (e.g., "president", "prime_minister", "supreme_leader", "monarch", "chancellor")
+- **metadata_role**: The most powerful/relevant/publicly known internationally recognized leader role (e.g., "president", "prime_minister", "supreme_leader", "monarch", "chancellor", "governor", "premier", "chief_minister")
 - **name**: Full name of the current leader
 - **metadata_asof**: Date when this leader assumed office or when the information is current, in ISO 8601 format (YYYY-MM-DD)
 - **IMPORTANT**:
   - For **cities**: Use the mayor or city leader
+  - For **states/provinces/regions/territories**: Use the governor, premier, chief minister, or equivalent administrative leader of that division
   - For **countries**: Use the head of state or head of government (whichever is most powerful/relevant)
   - For **continents**: Set to `null` - continents don't have a single leader
 
@@ -172,6 +193,7 @@ You must return a JSON object matching this exact type/var structure:
 
 4. **Location Type Handling**:
    - **Cities**: Provide city-specific data (city population, city timezone, city leader/mayor, city weather)
+   - **States/Provinces/Regions/Territories**: Provide division-specific data (division population, capital/major city timezone, governor/premier/chief minister, capital/major city weather)
    - **Countries**: Provide country-level data (country population, capital timezone, head of state/government, capital weather)
    - **Continents**: Provide continent-level aggregates (total population, representative timezone). Set `weather` and `leader` to `null` as continents don't have single weather conditions or leaders.
 
@@ -225,7 +247,95 @@ For input: "Iran"
 }
 ```
 
-### Example 2: Continent (Europe)
+### Example 2: State (Utah)
+
+For input: "Utah" or "What's happening in Utah"
+
+```json
+{
+  "card_type": "OVERVIEW",
+  "place": {
+    "type": "state",
+    "name": "Utah",
+    "display_name": "Utah, United States",
+    "country": {
+      "name": "United States",
+      "iso2": "US"
+    }
+  },
+  "time": {
+    "primary": {
+      "iana": "America/Denver",
+      "local_time_iso": "2026-01-17T10:43:57-07:00"
+    },
+    "alternates": []
+  },
+  "population": {
+    "value": 3380800,
+    "metadata_year": "2023"
+  },
+  "weather": {
+    "conditions": "Partly Cloudy",
+    "temperature_c": 5,
+    "icon": "02d"
+  },
+  "leader": {
+    "metadata_role": "governor",
+    "name": "Spencer Cox",
+    "metadata_asof": "2021-01-04"
+  },
+  "summary": {
+    "text": "Mountain state in the western United States known for its natural beauty, outdoor recreation, and growing tech industry. Currently experiencing rapid population growth and economic expansion, particularly in the Salt Lake City metropolitan area.",
+    "metadata_asof": "2026-01-17T17:43:57Z"
+  }
+}
+```
+
+### Example 3: Province (Ontario)
+
+For input: "Ontario" or "What's happening in Ontario"
+
+```json
+{
+  "card_type": "OVERVIEW",
+  "place": {
+    "type": "province",
+    "name": "Ontario",
+    "display_name": "Ontario, Canada",
+    "country": {
+      "name": "Canada",
+      "iso2": "CA"
+    }
+  },
+  "time": {
+    "primary": {
+      "iana": "America/Toronto",
+      "local_time_iso": "2026-01-17T12:43:57-05:00"
+    },
+    "alternates": []
+  },
+  "population": {
+    "value": 15500000,
+    "metadata_year": "2023"
+  },
+  "weather": {
+    "conditions": "Cloudy",
+    "temperature_c": -5,
+    "icon": "04d"
+  },
+  "leader": {
+    "metadata_role": "premier",
+    "name": "Doug Ford",
+    "metadata_asof": "2018-06-29"
+  },
+  "summary": {
+    "text": "Most populous province in Canada, home to Toronto and Ottawa. Economic powerhouse with diverse industries including finance, technology, and manufacturing. Currently focused on infrastructure development and economic growth initiatives.",
+    "metadata_asof": "2026-01-17T17:43:57Z"
+  }
+}
+```
+
+### Example 4: Continent (Europe)
 
 For input: "Europe"
 
@@ -279,7 +389,7 @@ The error message should be brief, helpful, and suggest what the user should ask
 
 1. **First, validate the query**: Determine if it's location-related
 2. **If invalid**: Return the error JSON format above
-3. **If valid**: Extract and resolve the location to the appropriate level (city/country/continent)
+3. **If valid**: Extract and resolve the location to the appropriate level (city/state/province/region/territory/country/continent)
 4. **Generate the overview JSON**: Fill in all fields based on the resolved location
 
 ## Important Notes
@@ -290,7 +400,7 @@ The error message should be brief, helpful, and suggest what the user should ask
 
 3. **Error only for truly irrelevant queries**: Only reject queries that have absolutely no location-related content. If there's any way to interpret it as location-related, do so.
 
-4. **Location resolution is mandatory**: When a location is found, you MUST resolve it to a city, country, or continent level. For streets/landmarks, always resolve to the city level.
+4. **Location resolution is mandatory**: When a location is found, you MUST resolve it to the most specific appropriate level (city, state/province/region/territory, country, or continent). For streets/landmarks, always resolve to the city level. For states/provinces, keep them as that type - do NOT resolve to the parent country.
 
 ## Instructions for Use
 

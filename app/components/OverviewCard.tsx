@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { GECard } from "@/components/GECard";
 import { Info } from "lucide-react";
+import { motion } from "framer-motion";
 
 // Helper function to get weather icon code from conditions (fallback)
 function getWeatherIconCode(conditions: string | undefined): string {
@@ -89,7 +90,7 @@ function useRealTime(ianaTimezone: string | undefined) {
 export type OverviewCardData = {
   card_type?: "OVERVIEW";
   place?: {
-    type: string;
+    type: "city" | "country" | "continent" | "state" | "province" | "region" | "territory";
     name: string;
     display_name: string;
     country: {
@@ -144,13 +145,20 @@ export default function OverviewCard({ data, onClose, onExpand }: OverviewCardPr
   const { formattedTime } = useRealTime(data.time?.primary.iana);
 
   return (
-    <GECard
-      icon={<Info className="h-6 w-6" />}
-      title="Region Overview"
-      live={true}
-      onClose={onClose}
-      onExpand={onExpand}
+    <motion.div 
+      className="fixed left-[800px] top-24 z-40 w-[340px] max-h-[calc(100vh-280px)]"
+      initial={{ opacity: 0, y: -20 }}
+      animate={{ opacity: 1, y: 0 }}
+      exit={{ opacity: 0, y: -20 }}
+      transition={{ duration: 0.2, ease: 'easeOut', delay: 0.1 }}
     >
+      <GECard
+        icon={<Info className="h-6 w-6" />}
+        title="Region Overview"
+        live={true}
+        onClose={onClose}
+        onExpand={onExpand}
+      >
       <div className="space-y-4">
         {/* Location with Flag */}
         <div>
@@ -168,7 +176,7 @@ export default function OverviewCard({ data, onClose, onExpand }: OverviewCardPr
                 {data.place?.display_name || data.place?.name}
               </p>
               <p className="text-sm text-[#9ca3af] mt-0.5">
-                {data.place?.type} • {data.place?.country?.name || 'N/A'}
+                {data.place?.type ? data.place.type.charAt(0).toUpperCase() + data.place.type.slice(1) : 'Location'} • {data.place?.country?.name || 'N/A'}
               </p>
             </div>
           </div>
@@ -200,7 +208,7 @@ export default function OverviewCard({ data, onClose, onExpand }: OverviewCardPr
           </div>
         )}
 
-        {/* Weather - Only show for cities and countries, not continents */}
+        {/* Weather - Only show for cities, states, provinces, regions, territories, and countries, not continents */}
         {data.weather && data.place?.type !== 'continent' && (
           <div>
             <p className="text-sm text-[#9ca3af] mb-1.5">Weather</p>
@@ -219,7 +227,7 @@ export default function OverviewCard({ data, onClose, onExpand }: OverviewCardPr
           </div>
         )}
 
-        {/* Leader - Only show for cities and countries, not continents */}
+        {/* Leader - Show for cities, states, provinces, regions, territories, and countries, not continents */}
         {data.leader && data.place?.type !== 'continent' && (
           <div>
             <p className="text-sm text-[#9ca3af] mb-1.5">Leader</p>
@@ -243,5 +251,6 @@ export default function OverviewCard({ data, onClose, onExpand }: OverviewCardPr
         )}
       </div>
     </GECard>
+    </motion.div>
   );
 }

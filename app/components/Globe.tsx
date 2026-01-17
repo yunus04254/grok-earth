@@ -9,6 +9,7 @@ import { TweetList } from '@/components/TweetList';
 
 export interface GlobeRef {
   flyToHotspot: (hotspot: Hotspot) => void;
+  flyToCoordinates: (lat: number, lng: number, zoom?: number) => void;
   resetView: () => void;
 }
 
@@ -109,6 +110,18 @@ const Globe = forwardRef<GlobeRef, GlobeProps>(({ apiKey, onHotspotSelect }, ref
         map.current.flyTo({
           center: [hotspot.lng, hotspot.lat],
           zoom: 8,
+          pitch: 45,
+          duration: 2000,
+          essential: true
+        });
+      }
+    },
+    flyToCoordinates: (lat: number, lng: number, zoom: number = 8) => {
+      // Fly to specific coordinates
+      if (map.current) {
+        map.current.flyTo({
+          center: [lng, lat],
+          zoom,
           pitch: 45,
           duration: 2000,
           essential: true

@@ -4,12 +4,13 @@ import { useState, useRef } from 'react';
 import Image from 'next/image';
 import Globe, { GlobeRef } from './components/Globe';
 import SidePanel from './components/SidePanel';
-import { AnimatePresence } from 'framer-motion';
+import { AnimatePresence, motion } from 'framer-motion';
 import MarkerKey from './components/MarkerKey';
 import CityTrendsCard from './components/CityTrendsCard';
 import Grokipedia from './components/Grokipedia';
 import GrokRadio from './components/GrokRadio';
 import PredictionMarkets from './components/PredictionMarkets';
+import OverviewCard, { OverviewCardData } from './components/OverviewCard';
 import GrokEarthLogo from './assets/GrokEarth.png';
 import { GEInput } from '@/components/GEInput';
 import { Hotspot } from '@/app/lib/types';
@@ -27,6 +28,12 @@ export default function ClientHome({ apiKey }: ClientHomeProps) {
   const [showGrokipedia, setShowGrokipedia] = useState(true);
   const [showGrokRadio, setShowGrokRadio] = useState(true);
   const [showPredictionMarkets, setShowPredictionMarkets] = useState(true);
+  
+  // OverviewCard state
+  const [overviewCardData, setOverviewCardData] = useState<OverviewCardData | null>(null);
+  const [showOverviewCard, setShowOverviewCard] = useState(false);
+  const [isLoadingOverview, setIsLoadingOverview] = useState(false);
+  const [inputValue, setInputValue] = useState('');
   
   const globeRef = useRef<GlobeRef>(null);
 
@@ -55,6 +62,84 @@ export default function ClientHome({ apiKey }: ClientHomeProps) {
   const handleResetView = () => {
     handleCloseAll();
     globeRef.current?.resetView();
+  };
+
+  // Geocode location name to coordinates using Mapbox
+  const geocodeLocation = async (locationName: string): Promise<{ lat: number; lng: number } | null> => {
+    try {
+      const response = await fetch(
+        `https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(locationName)}.json?access_token=${apiKey}&limit=1`
+      );
+      const data = await response.json();
+      if (data.features && data.features.length > 0) {
+        const [lng, lat] = data.features[0].center;
+        return { lat, lng };
+      }
+      return null;
+    } catch (error) {
+      console.error('Geocoding error:', error);
+      return null;
+    }
+  };
+
+  // Handle input submission
+  const handleInputSubmit = async (query: string) => {
+    if (!query.trim()) return;
+
+    setIsLoadingOverview(true);
+    setShowOverviewCard(false);
+    setOverviewCardData(null);
+
+    try {
+      // Call overview-card API
+      const response = await fetch('/api/overview-card', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ question: query }),
+      });
+
+      const data = await response.json();
+
+      // Check for errors
+      if (data.error) {
+        console.error('Overview card error:', data.message);
+        setIsLoadingOverview(false);
+        return;
+      }
+
+      // Set the overview card data
+      setOverviewCardData(data as OverviewCardData);
+
+      // Extract location name for the cards (use display_name or name)
+      const locationName = data.place?.display_name || data.place?.name || query;
+      
+      // Set selectedCity to trigger all the other cards (Grokipedia, GrokRadio, PredictionMarkets)
+      // This mimics the behavior of clicking a hotspot
+      setSelectedCity(locationName);
+      setShowGrokipedia(true);
+      setShowGrokRadio(true);
+      setShowPredictionMarkets(true);
+
+      // Geocode the location to get coordinates
+      const coordinates = await geocodeLocation(locationName);
+
+      if (coordinates) {
+        // Fly to the location
+        globeRef.current?.flyToCoordinates(coordinates.lat, coordinates.lng, 8);
+      }
+
+      // Show the overview card
+      setShowOverviewCard(true);
+      
+      // Clear the input after successful submission
+      setInputValue('');
+    } catch (error) {
+      console.error('Error fetching overview card:', error);
+    } finally {
+      setIsLoadingOverview(false);
+    }
   };
 
   return (
@@ -119,6 +204,20 @@ export default function ClientHome({ apiKey }: ClientHomeProps) {
         )}
       </AnimatePresence>
 
+      {/* Overview Card - opens when input is submitted */}
+      <AnimatePresence>
+        {showOverviewCard && overviewCardData && (
+          <OverviewCard 
+            key={`overview-${overviewCardData.place?.name || 'location'}`}
+            data={overviewCardData}
+            onClose={() => {
+              setShowOverviewCard(false);
+              setOverviewCardData(null);
+            }} 
+          />
+        )}
+      </AnimatePresence>
+
       {/* Logo in top left */}
       <div className="fixed top-6 left-6 z-20">
         <Image
@@ -165,6 +264,10 @@ export default function ClientHome({ apiKey }: ClientHomeProps) {
             ]}
             placeholder="Ask anything about what's happening in the world..."
             className="w-full group-hover:scale-[1.02] group-hover:shadow-[0_0_0_1px_rgba(255,255,255,0.12),inset_0_1px_0_0_rgba(255,255,255,0.15),0_12px_48px_rgba(0,0,0,0.6),0_6px_20px_rgba(0,0,0,0.4)] transition-all duration-300 ease-out"
+            onEnter={handleInputSubmit}
+            loading={isLoadingOverview}
+            value={inputValue}
+            onChange={(e) => setInputValue(e.target.value)}
           />
         </div>
       </div>
