@@ -3,7 +3,8 @@
 import { useState } from "react";
 import { GECard } from "@/components/GECard";
 import { GEInput } from "@/components/GEInput";
-import { Info, BookOpen, Headphones } from "lucide-react";
+import { GEButton } from "@/components/GEButton";
+import { Info, BookOpen, Headphones, Download, Send, Trash2, Check } from "lucide-react";
 
 export default function Sandbox() {
   const [isLoading, setIsLoading] = useState(true);
@@ -93,6 +94,103 @@ export default function Sandbox() {
               }}
             />
           </div>
+
+          {/* GEButton Examples */}
+          <GECard
+            icon={<Info className="h-6 w-6" />}
+            title="GEButton Examples"
+          >
+            <div className="space-y-6">
+              {/* Variants */}
+              <div className="space-y-3">
+                <p className="text-sm font-semibold uppercase tracking-wider text-[#6b7280] font-mono mb-2">
+                  Variants
+                </p>
+                <div className="flex flex-wrap gap-3">
+                  <GEButton variant="default">Default</GEButton>
+                  <GEButton variant="outline">Outline</GEButton>
+                  <GEButton variant="ghost">Ghost</GEButton>
+                  <GEButton variant="destructive">Destructive</GEButton>
+                  <GEButton variant="success">Success</GEButton>
+                  <GEButton variant="accent">Accent</GEButton>
+                </div>
+              </div>
+
+              {/* Sizes */}
+              <div className="space-y-3">
+                <p className="text-sm font-semibold uppercase tracking-wider text-[#6b7280] font-mono mb-2">
+                  Sizes
+                </p>
+                <div className="flex flex-wrap items-center gap-3">
+                  <GEButton size="sm">Small</GEButton>
+                  <GEButton size="default">Default</GEButton>
+                  <GEButton size="lg">Large</GEButton>
+                  <GEButton size="icon">
+                    <Download className="h-4 w-4" />
+                  </GEButton>
+                </div>
+              </div>
+
+              {/* With Icons */}
+              <div className="space-y-3">
+                <p className="text-sm font-semibold uppercase tracking-wider text-[#6b7280] font-mono mb-2">
+                  With Icons
+                </p>
+                <div className="flex flex-wrap gap-3">
+                  <GEButton variant="default">
+                    <Download className="h-4 w-4" />
+                    Download
+                  </GEButton>
+                  <GEButton variant="outline">
+                    <Send className="h-4 w-4" />
+                    Send
+                  </GEButton>
+                  <GEButton variant="success">
+                    <Check className="h-4 w-4" />
+                    Confirm
+                  </GEButton>
+                  <GEButton variant="destructive">
+                    <Trash2 className="h-4 w-4" />
+                    Delete
+                  </GEButton>
+                </div>
+              </div>
+
+              {/* Disabled States */}
+              <div className="space-y-3">
+                <p className="text-sm font-semibold uppercase tracking-wider text-[#6b7280] font-mono mb-2">
+                  Disabled States
+                </p>
+                <div className="flex flex-wrap gap-3">
+                  <GEButton variant="default" disabled>Disabled</GEButton>
+                  <GEButton variant="outline" disabled>Disabled</GEButton>
+                  <GEButton variant="ghost" disabled>Disabled</GEButton>
+                </div>
+              </div>
+
+              {/* Interactive Example */}
+              <div className="space-y-3">
+                <p className="text-sm font-semibold uppercase tracking-wider text-[#6b7280] font-mono mb-2">
+                  Interactive
+                </p>
+                <div className="flex flex-wrap gap-3">
+                  <GEButton 
+                    variant="default"
+                    onClick={() => alert("Default button clicked!")}
+                  >
+                    Click Me
+                  </GEButton>
+                  <GEButton 
+                    variant="accent"
+                    onClick={() => alert("Accent button clicked!")}
+                  >
+                    <Send className="h-4 w-4" />
+                    Send Message
+                  </GEButton>
+                </div>
+              </div>
+            </div>
+          </GECard>
         </div>
       </main>
     </div>
