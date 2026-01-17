@@ -4,6 +4,7 @@ import * as React from "react";
 import { Card } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
 import { X, Maximize2, Move } from "lucide-react";
+import { TweetList } from "@/components/TweetList";
 
 export interface GECardProps extends React.HTMLAttributes<HTMLDivElement> {
   children?: React.ReactNode;
@@ -13,10 +14,11 @@ export interface GECardProps extends React.HTMLAttributes<HTMLDivElement> {
   onClose?: () => void;
   onExpand?: () => void;
   maxHeight?: string | number;
+  region?: string;
 }
 
 const GECard = React.forwardRef<HTMLDivElement, GECardProps>(
-  ({ className, children, icon, title, live, onClose, onExpand, maxHeight, ...props }, ref) => {
+  ({ className, children, icon, title, live, onClose, onExpand, maxHeight, region, ...props }, ref) => {
     const maxHeightStyle = maxHeight 
       ? typeof maxHeight === 'number' 
         ? { maxHeight: `${maxHeight}px` }
@@ -82,7 +84,7 @@ const GECard = React.forwardRef<HTMLDivElement, GECardProps>(
         )}
 
         {/* Body content - flexible and lenient */}
-        {children && (
+        {(children || region) && (
           <div 
             className={cn(
               (icon || title || live) ? "px-6 pt-4" : "px-6 pt-6",
@@ -92,6 +94,11 @@ const GECard = React.forwardRef<HTMLDivElement, GECardProps>(
             )}
           >
             {children}
+            {region && (
+              <div className={cn(children && "mt-6")}>
+                <TweetList region={region} />
+              </div>
+            )}
           </div>
         )}
 

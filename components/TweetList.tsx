@@ -29,42 +29,42 @@ const TweetCard = React.forwardRef<HTMLDivElement, TweetCardProps>(
     return (
       <Card
         ref={ref}
-        className="bg-gradient-to-br from-[#1a1d24]/95 via-[#1f2532]/95 to-[#1a1f2e]/95 backdrop-blur-sm border-[#2a2f3a]/60 rounded-2xl shadow-[0_8px_32px_rgba(0,0,0,0.4),0_2px_8px_rgba(0,0,0,0.2)] hover:shadow-[0_12px_48px_rgba(0,0,0,0.5),0_4px_12px_rgba(0,0,0,0.3)] transition-all duration-200"
+        className="bg-transparent border-[#2a2f3a]/40 rounded-xl transition-all duration-200"
       >
-        <CardContent className="flex gap-3 p-6">
+        <CardContent className="flex gap-2 p-3">
           {/* Avatar */}
           <div className="flex-shrink-0">
             <img
               src={avatar}
               alt={handle}
-              className="w-12 h-12 rounded-full"
+              className="w-10 h-10 rounded-full"
             />
           </div>
 
           {/* Content */}
           <div className="flex-1 min-w-0">
             {/* Handle */}
-            <div className="text-[#6b7280] font-medium mb-1">
+            <div className="text-[#6b7280] font-medium text-sm mb-0.5">
               {handle}
             </div>
 
             {/* Tweet Content */}
-            <div className="text-white mb-3">
+            <div className="text-white text-sm mb-2 line-clamp-2">
               {content}
             </div>
 
             {/* Stats */}
-            <div className="flex gap-6 text-[#6b7280]">
+            <div className="flex gap-4 text-[#6b7280]">
               {/* Retweets */}
-              <div className="flex items-center gap-2">
-                <Repeat2 className="h-4 w-4" />
-                <span className="text-sm">{retweets}</span>
+              <div className="flex items-center gap-1.5">
+                <Repeat2 className="h-3.5 w-3.5" />
+                <span className="text-xs">{retweets}</span>
               </div>
 
               {/* Likes */}
-              <div className="flex items-center gap-2">
-                <Heart className="h-4 w-4" />
-                <span className="text-sm">{likes}</span>
+              <div className="flex items-center gap-1.5">
+                <Heart className="h-3.5 w-3.5" />
+                <span className="text-xs">{likes}</span>
               </div>
             </div>
           </div>
@@ -136,10 +136,7 @@ export const TweetList: React.FC<TweetListProps> = ({ region }) => {
 
   return (
     <div className="relative overflow-hidden">
-      {/* Fade overlay at the top */}
-      <div className="absolute top-0 left-0 right-0 h-32 bg-gradient-to-b from-[#0f1117] to-transparent z-10 pointer-events-none" />
-      
-      <div className="pt-8">
+      <div className="space-y-2">
         <AnimatePresence initial={false} mode="popLayout">
           {Array.from({ length: 3 }).map((_, i) => {
             const tweetIndex = (offset + i) % tweets.length;
@@ -158,7 +155,7 @@ export const TweetList: React.FC<TweetListProps> = ({ region }) => {
                   opacity: { duration: 0.3 },
                   y: { duration: 0.3 }
                 }}
-                className="mb-4"
+                className="mb-2"
               >
                 <TweetCard
                   avatar={tweet.avatar}
