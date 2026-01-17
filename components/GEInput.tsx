@@ -91,15 +91,22 @@ const GEInput = React.forwardRef<HTMLInputElement, GEInputProps>(
     onFocus,
     ...props 
   }, ref) => {
+    const [isMounted, setIsMounted] = React.useState(false);
     const [isFocused, setIsFocused] = React.useState(false);
     const [isUserTyping, setIsUserTyping] = React.useState(false);
+    
+    // Only start typing effect after component is mounted (client-side)
+    React.useEffect(() => {
+      setIsMounted(true);
+    }, []);
+    
     const typingEffect = useTypingEffect(
-      autoType && !isFocused && !isUserTyping ? typingTexts : [],
+      isMounted && autoType && !isFocused && !isUserTyping ? typingTexts : [],
       typingSpeed,
       deletingSpeed,
       pauseDuration,
       loop,
-      isFocused || isUserTyping
+      !isMounted || isFocused || isUserTyping
     );
     
     const [inputValue, setInputValue] = React.useState("");
@@ -156,7 +163,7 @@ const GEInput = React.forwardRef<HTMLInputElement, GEInputProps>(
       onChange?.(e);
     };
 
-    const isAutoTyping = autoType && !isFocused && !isUserTyping && typingEffect.currentText.length > 0;
+    const isAutoTyping = isMounted && autoType && !isFocused && !isUserTyping && typingEffect.currentText.length > 0;
     const displayValue = isAutoTyping ? typingEffect.currentText : (value !== undefined ? value : inputValue);
 
     return (
@@ -183,8 +190,8 @@ const GEInput = React.forwardRef<HTMLInputElement, GEInputProps>(
           "shadow-[0_0_0_1px_rgba(255,255,255,0.08),inset_0_1px_0_0_rgba(255,255,255,0.1),0_8px_40px_rgba(0,0,0,0.5),0_4px_16px_rgba(0,0,0,0.3)]",
           // Custom class for animated glow on focus (defined in globals.css)
           "ge-input",
-          // Transition for smooth interactions
-          "transition-all duration-200",
+          // Transition for smooth interactions (but not box-shadow to avoid delay)
+          "transition-[background-color,border-color,color] duration-200",
           // Height and padding - larger for better presence
           "h-14 px-6 py-4 text-base",
           className

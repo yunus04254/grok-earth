@@ -47,7 +47,7 @@ const GECard = React.forwardRef<HTMLDivElement, GECardProps>(
                 </div>
               )}
               {title && (
-                <h3 className="text-base font-semibold uppercase tracking-wide text-[#e5e7eb]">
+                <h3 className="text-lg font-semibold uppercase tracking-wider text-[#6b7280] font-mono">
                   {title}
                 </h3>
               )}
