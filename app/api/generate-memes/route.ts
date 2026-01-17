@@ -30,30 +30,18 @@ export async function POST(req: Request) {
     // Combined step: Search for viral memes AND generate location-specific prompts in one call
     const memePromptGeneration = await generateText({
       model,
-      prompt: `Search for current viral meme formats trending worldwide (2025), then create 3 EXTREMELY FUNNY meme prompts about "${city}".
+      prompt: `Search for current viral meme formats trending worldwide (2025), then create 1 EXTREMELY FUNNY meme prompt about "${city}".
 
 Use current viral meme formats like Drake Pointing, Distracted Boyfriend, Woman Yelling at Cat, Expanding Brain, Surprised Pikachu, or other trending formats.
 
-Return JSON array (NO markdown, ONLY valid JSON):
-[
-  {
-    "prompt": "detailed image prompt for meme 1 about ${city}",
-    "memeFormat": "viral meme format name",
-    "humorStyle": "relatable/absurd/ironic"
-  },
-  {
-    "prompt": "detailed image prompt for meme 2 about ${city}",
-    "memeFormat": "viral meme format name",
-    "humorStyle": "relatable/absurd/ironic"
-  },
-  {
-    "prompt": "detailed image prompt for meme 3 about ${city}",
-    "memeFormat": "viral meme format name",
-    "humorStyle": "relatable/absurd/ironic"
-  }
-]
+Return JSON object (NO markdown, ONLY valid JSON):
+{
+  "prompt": "detailed image prompt for meme about ${city}",
+  "memeFormat": "viral meme format name",
+  "humorStyle": "relatable/absurd/ironic"
+}
 
-Make prompts HILARIOUS, specific to ${city} (culture, food, landmarks, stereotypes), use viral formats, include text overlays.`,
+Make prompt HILARIOUS, specific to ${city} (culture, food, landmarks, stereotypes), use viral formats, include text overlays.`,
       providerOptions: {
         xai: {
           searchParameters: {
@@ -67,12 +55,12 @@ Make prompts HILARIOUS, specific to ${city} (culture, food, landmarks, stereotyp
       maxTokens: 800, // Limit tokens for faster response
     });
 
-    // Parse meme prompts
-    let memePrompts: Array<{
+    // Parse meme prompt
+    let memePrompt: {
       prompt: string;
       memeFormat: string;
       humorStyle: string;
-    }> = [];
+    } | null = null;
 
     try {
       let cleanedResponse = memePromptGeneration.text.trim();
@@ -81,83 +69,65 @@ Make prompts HILARIOUS, specific to ${city} (culture, food, landmarks, stereotyp
       } else if (cleanedResponse.startsWith('```')) {
         cleanedResponse = cleanedResponse.replace(/^```\s*/, '').replace(/\s*```$/, '');
       }
-      memePrompts = JSON.parse(cleanedResponse);
+      memePrompt = JSON.parse(cleanedResponse);
     } catch (parseError) {
-      console.error('Error parsing meme prompts:', parseError);
-      // Fallback prompts
-      memePrompts = [
-        {
-          prompt: `A hilarious viral meme about ${city} using the Drake pointing format. Left panel shows Drake disapproving something generic, right panel shows Drake approving something specific and funny about ${city}. Include bold text overlays with funny captions about ${city}'s unique characteristics, culture, or stereotypes. Make it extremely funny and shareable.`,
-          memeFormat: 'Drake Pointing',
-          humorStyle: 'relatable',
-        },
-        {
-          prompt: `A funny viral meme about ${city} using the Distracted Boyfriend format. Show a person looking away from something normal toward something absurdly specific to ${city}. Include text overlays that are hilarious and reference ${city}'s culture, food, weather, or local quirks. Make it genuinely funny and relatable.`,
-          memeFormat: 'Distracted Boyfriend',
-          humorStyle: 'ironic',
-        },
-        {
-          prompt: `An absurd and hilarious meme about ${city} using the Woman Yelling at Cat format. Show a dramatic scene with text overlays that are extremely funny and specific to ${city}. Reference local stereotypes, landmarks, or cultural elements in a humorous way. Make it shareable and genuinely amusing.`,
-          memeFormat: 'Woman Yelling at Cat',
-          humorStyle: 'absurd',
-        },
-      ];
+      console.error('Error parsing meme prompt:', parseError);
+      // Fallback prompt
+      memePrompt = {
+        prompt: `A hilarious viral meme about ${city} using the Drake pointing format. Left panel shows Drake disapproving something generic, right panel shows Drake approving something specific and funny about ${city}. Include bold text overlays with funny captions about ${city}'s unique characteristics, culture, or stereotypes. Make it extremely funny and shareable.`,
+        memeFormat: 'Drake Pointing',
+        humorStyle: 'relatable',
+      };
     }
 
-    // Step 3: Generate the actual images using the prompts
-    const imagePromises = memePrompts.map(({ prompt }) =>
-      fetch('https://api.x.ai/v1/images/generations', {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${process.env.X_AI_API_KEY}`,
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          model: 'grok-2-image-1212',
-          prompt: prompt,
-          image_format: 'url',
-          n: 1,
-        }),
-      }).then(async (res) => {
-        if (!res.ok) {
-          const errorText = await res.text();
-          throw new Error(`Image generation failed: ${res.status} - ${errorText}`);
-        }
-        return res.json();
-      })
-    );
+    if (!memePrompt) {
+      throw new Error('Failed to generate meme prompt');
+    }
 
-    const imageResults = await Promise.all(imagePromises);
-
-    // Extract image URLs
-    const images: Array<{
-      url: string;
-      memeFormat: string;
-      humorStyle: string;
-      revisedPrompt?: string;
-    }> = [];
-
-    imageResults.forEach((result, index) => {
-      let imageUrl: string | undefined;
-      let revisedPrompt: string | undefined;
-
-      if (result.data && Array.isArray(result.data) && result.data.length > 0) {
-        imageUrl = result.data[0].url || result.data[0].image_url;
-        revisedPrompt = result.data[0].revised_prompt;
-      } else if (result.url || result.image_url) {
-        imageUrl = result.url || result.image_url;
-        revisedPrompt = result.revised_prompt;
-      }
-
-      if (imageUrl) {
-        images.push({
-          url: imageUrl,
-          memeFormat: memePrompts[index]?.memeFormat || 'Viral Meme',
-          humorStyle: memePrompts[index]?.humorStyle || 'funny',
-          revisedPrompt,
-        });
-      }
+    // Generate the actual image
+    const imageResponse = await fetch('https://api.x.ai/v1/images/generations', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${process.env.X_AI_API_KEY}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        model: 'grok-2-image-1212',
+        prompt: memePrompt.prompt,
+        image_format: 'url',
+        n: 1,
+      }),
     });
+
+    if (!imageResponse.ok) {
+      const errorText = await imageResponse.text();
+      throw new Error(`Image generation failed: ${imageResponse.status} - ${errorText}`);
+    }
+
+    const imageResult = await imageResponse.json();
+
+    // Extract image URL
+    let imageUrl: string | undefined;
+    let revisedPrompt: string | undefined;
+
+    if (imageResult.data && Array.isArray(imageResult.data) && imageResult.data.length > 0) {
+      imageUrl = imageResult.data[0].url || imageResult.data[0].image_url;
+      revisedPrompt = imageResult.data[0].revised_prompt;
+    } else if (imageResult.url || imageResult.image_url) {
+      imageUrl = imageResult.url || imageResult.image_url;
+      revisedPrompt = imageResult.revised_prompt;
+    }
+
+    if (!imageUrl) {
+      throw new Error('Failed to extract image URL from response');
+    }
+
+    const images = [{
+      url: imageUrl,
+      memeFormat: memePrompt.memeFormat || 'Viral Meme',
+      humorStyle: memePrompt.humorStyle || 'funny',
+      revisedPrompt,
+    }];
 
     if (images.length === 0) {
       return new Response(
